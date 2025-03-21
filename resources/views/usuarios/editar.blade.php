@@ -1,0 +1,2 @@
+Editar: <br>
+{{ usuario->nombres }}

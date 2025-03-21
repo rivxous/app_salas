@@ -1,0 +1,3 @@
+Ver usuario
+
+{{ $usuario->nombres }}
