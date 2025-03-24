@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Sala;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
-class UserController extends Controller {
+class SalaController extends Controller {
     /**
      * Muestre una lista del recurso.
      */
     public function index() {
-        return view('usuarios/index');
+        return view('salas/index');
     }
 
     /**
      * Muestre el formulario para crear un nuevo recurso.
      */
-    // public function create() {
-    //     return view('usuarios/nuevo');
-    // }
+    public function create() {
+        return view('salas/nuevo');
+    }
 
     /**
      * Almacene un recurso recién creado en almacenamiento.
@@ -27,11 +27,15 @@ class UserController extends Controller {
     public function store(Request $request) {
         // Validar los datos enviados en la solicitud
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'nombre' => 'required|string|id|unique:salas',
+            'ubicacion' => 'required|string',
+            'capacidad' => 'required|string',
+            'estado' => 'required|string',
+            'horario' => 'required|string',
+
+
         ]);
-        $guardar = User::crearUsuario($request);
+        $guardar = Sala::crearSala($request);
         if ($guardar) {
             return response()->json(['mensaje' => 'listo']);
 
@@ -46,13 +50,13 @@ class UserController extends Controller {
      */
     public function show($id) {
 
-        $usuario = User::obtenerPorId($id);
-        if ($usuario) {
-            return view('usuarios/ver', [
-                'usuario' => $usuario
+        $sala = Sala::obtenerPorId($id);
+        if ($sala) {
+            return view('salas/ver', [
+                'sala' => $sala
             ]);
         } else {
-            abort(404, 'Usuario no encontrado');
+            abort(404, 'Sala no encontrada');
         }
     }
 
@@ -60,27 +64,27 @@ class UserController extends Controller {
      * Muestre el formulario para editar el recurso especificado.
      */
     public function edit($id) {
-        $usuario = User::obtenerPorId($id);
-        if ($usuario) {
-            return view('usuarios/editar', [
-                'usuario' => $usuario
+        $sala = Sala::obtenerPorId($id);
+        if ($sala) {
+            return view('salas/editar', [
+                'sala' => $sala
             ]);
         } else {
-            abort(404, 'Usuario no encontrado');
+            abort(404, 'Sala no encontrada');
         }
     }
-
-        /**
+    
+    /**
      * Elimine el recurso especificado del almacenamiento.
      */
     public function destroy($id) {
-            $usuario = User::obtenerPorId($id);
-            if ($usuario) {
-                return view('usuarios/eliminar', [
-                    'usuario' => $usuario
-                ]);
-            } else {
-                abort(404, 'Usuario no encontrado');
-            }
+        $sala = Sala::obtenerPorId($id);
+        if ($sala) {
+            return view('salas/eliminar', [
+                'sala' => $sala
+            ]);
+        } else {
+            abort(404, 'Sala no encontrada');
         }
+    }
 }

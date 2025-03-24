@@ -17,20 +17,17 @@
 
         <form id="registrationForm">
             <div class="mb-3">
-                <label for="username" class="form-label">Usuario</label>
-                <input type="text" class="form-control" name="usuario" placeholder="Ingresa tu usuario">
+                <label for="name" class="form-label">Nombre</label>
+                <input type="text" class="form-control" name="name" placeholder="Ingresa tu usuario">
             </div>
-            <div class="mb-3">
-                <label for="firstName" class="form-label">Nombres</label>
-                <input type="text" class="form-control" name="nombres" placeholder="Ingresa tus nombres">
-            </div>
-            <div class="mb-3">
-                <label for="lastName" class="form-label">Apellidos</label>
-                <input type="text" class="form-control" name="apellidos" placeholder="Ingresa tus apellidos">
-            </div>
+            
             <div class="mb-3">
                 <label for="email" class="form-label">Correo</label>
-                <input type="email" class="form-control" name="correo" placeholder="Ingresa tu correo">
+                <input type="email" class="form-control" name="email" placeholder="Ingresa tu correo">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Correo</label>
+                <input type="password" class="form-control" name="password" placeholder="Ingresa tu clave">
             </div>
             <button type="submit" class="btn btn-primary">Enviar</button>
         </form>
@@ -47,7 +44,7 @@
                 const formData = $(this).serialize(); // Serializa los datos del formulario
 
                 $.ajax({
-                    url: url + '/', // Cambia esto a la URL de tu servidor
+                    url: '{{route("guardar_usuario")}}', // Cambia esto a la URL de tu servidor
                     type: 'POST',
                     data: formData,
                     headers: {

@@ -2,57 +2,75 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Http\Request;
 
-class User extends Model {
-    use HasFactory, SoftDeletes;
+class User extends Authenticatable
+{
+    use HasApiTokens, Notifiable;
 
-    protected $table = 'usuarios'; // Nombre de la tabla en la base de datos
+    protected $table = 'users'; // Nombre de la tabla en la base de datos
 
     protected $fillable = [
-        'usuario',
-        'nombres',
-        'apellidos',
-        'correo',
+        'userName',
+        'name',
+        'email',
+        'password',
+        'apellido',
     ];
 
-    // Crear un usuario (Create)
-    public static function crearUsuario($data) {
-        return self::create([
-            'usuario' => $data->usuario,
-            'nombres' => $data->nombres,
-            'apellidos' => $data->apellidos,
-            'correo' => $data->correo
-        ]);
-    }
+    
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
-    // Obtener todos los usuarios (Read)
+    /**
+     * Los atributos que deben ser convertidos a tipos nativos.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+//    // Crear un user (Crear)
+//     public static function crearUsuario(Request $data) {
+//         return self::create([
+//             'name' => $data->name,
+//             'email' => $data->email,
+//             'password' => Hash::make($data->password), // Cifrar la contraseña
+//         ]);
+//     }
+
+    // Obtener todos los usuarios (Leer)
     public static function obtenerTodos() {
         return self::all();
     }
 
-    // Obtener un usuario por ID (Read)
+    // Obtener un usuario por ID (Leer)
     public static function obtenerPorId($id) {
         return self::find($id);
     }
 
-    // Actualizar un usuario existente (Update)
+    // Actualizar un usuario existente (Guardar)
     public static function actualizarUsuario($id, $data) {
-        $usuario = self::find($id);
-        if ($usuario) {
-            $usuario->update($data);
-            return $usuario;
+        $user = self::find($id);
+        if ($user) {
+            $user->update($data);
+            return $user;
         }
         return null; // Retorna null si no se encuentra el usuario
     }
 
-    // Eliminar un usuario (Delete)
+    // Eliminar un usuario (Eliminar)
     public static function eliminarUsuario($id) {
-        $usuario = self::find($id);
-        if ($usuario) {
-            $usuario->delete();
+        $user = self::find($id);
+        if ($user) {
+            $user->delete();
             return true;
         }
         return false; // Retorna false si no se encuentra el usuario
