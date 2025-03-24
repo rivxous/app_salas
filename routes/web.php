@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SalasController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -19,22 +22,22 @@ use App\Http\Controllers\UserController;
 // });
 // });
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ReservaController;
 
 
+Route::resource('salas', SalasController::class);
+ 
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login'])->name('login.post');
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('usuarios/nuevo', [UserController::class, 'create']);
+Route::get('user/nuevo', [UserController::class, 'create']);
 
 Route::get('/', function () {
-    return view('inicio/index');
+    return view('welcome');
 })->middleware('auth');
 
 Route::prefix('auth')->middleware('auth')->group(function () {
     // WEB 
-    Route::prefix('/usuarios')->group(function () {
+    Route::prefix('/user')->group(function () {
         Route::get('/', [UserController::class, 'index']);
         Route::get('/nuevo', [UserController::class, 'create']);
         Route::get('/{id}', [UserController::class, 'show']);
@@ -43,10 +46,11 @@ Route::prefix('auth')->middleware('auth')->group(function () {
 
     //api
     Route::prefix('/api')->group(function () {
-        Route::prefix('/usuarios')->group(function () {
+        Route::prefix('/user')->group(function () {
             Route::post('/', [UserController::class, 'store'])->name('guardar_usuario');
             Route::put('/{id}', [UserController::class, 'update']);
             Route::delete('/{id}', [UserController::class, 'delete']);
         });
     });
 });
+

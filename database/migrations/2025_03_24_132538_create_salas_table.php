@@ -9,23 +9,23 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up() {
+    public function up(): void
+    {
         Schema::create('salas', function (Blueprint $table) {
             $table->id();
 
             $table->string('nombre');
             $table->string('ubicacion');
             $table->string('capacidad');
-            $table->string('estado');
-            $table->string('horario');
-            $table->string('created_at');
-            $table->string('updated_at');
-            $table->string('deleted_at');
+            $table->string('status')->nullable;
+            $table->time('horario_inicio');
+            $table->time('horario_fin');
 
+            $table->softDeletes();
             $table->timestamps();
         });
     }
-    
+
     /**
      * Reverse the migrations.
      */

@@ -4,10 +4,10 @@
 <div class="row">
     <div class="col-12">
         <div>
-            <h2 class="text-white">Listado de Salas QQGAS</h2>
+            <h2 class="text-white">Listado de reservas QQGAS</h2>
         </div>
         <div>
-            <a href="{{ route('salas.create') }}" class="btn btn-primary">Crear Sala</a>
+            <a href="{{ route('reservas.create') }}" class="btn btn-primary">Crear reserva</a>
         </div>
     </div>
 
@@ -27,28 +27,27 @@
     <div class="col-12 mt-4">
         <table class="table table-bordered text-white">
             <tr class="text-secondary">
-                <th>NOMBRE</th>
-                <th>UBICACIÓN</th>
-                <th>CAPACIDAD</th>
-                <th>STATUS</th>
-                <th>HORARIO INICIO</th>
-                <th>HORARIO FIN</th>
+                <th>TITULO</th>
+                <th>DESCRIPCIÓN</th>
+                <th>TIPO DE EVENTO </th>
+                <th>HORARIO</th>
+                <th>SALA</th>
                 <th>ACCIONES</th>
             </tr>
-            @foreach ($salas as $sala)
+            @foreach ($reservas as $reserva)
             <tr>
-                <td class="fw-bold">{{ $sala->nombre }}</td>
-                <td>{{ $sala->ubicacion }}</td>
-                <td>{{ $sala->capacidad }}</td>
-                <td><span class="badge bg-warning fs-6">{{ $sala->status }}</span></td>
-                <td>{{ $sala->horario_inicio }}</td>
-                <td>{{ $sala->horario_fin }}</td>
+                <td class="fw-bold">{{ $reserva->nombre }}</td>
+                <td>{{ $reserva->ubicacion }}</td>
+                <td>{{ $reserva->capacidad }}</td>
+                <td><span class="badge bg-warning fs-6">{{ $reserva->status }}</span></td>
+                <td>{{ $reserva->horario_inicio }}</td>
+                <td>{{ $reserva->horario_fin }}</td>
                 <td>
-                    <a href="{{ route('salas.show', ['sala' => $sala->id]) }}" class="btn btn-warning">Editar</a>
+                    <a href="{{ route('reservas.show', ['reserva' => $reserva->id]) }}" class="btn btn-warning">Editar</a>
 
-                    <button class="btn btn-danger" onclick="confirmDelete({{ $sala->id }})">Eliminar</button>
+                    <button class="btn btn-danger" onclick="confirmDelete({{ $reserva->id }})">Eliminar</button>
 
-                    <form id="delete-form-{{ $sala->id }}" action="{{ route('salas.destroy', ['sala' => $sala->id]) }}" method="POST" style="display: none;">
+                    <form id="delete-form-{{ $reserva->id }}" action="{{ route('reservas.destroy', ['reserva' => $reserva->id]) }}" method="POST" style="display: none;">
                         @csrf
                         @method('DELETE')
                     </form>
