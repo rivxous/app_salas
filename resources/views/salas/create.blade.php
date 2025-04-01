@@ -32,7 +32,7 @@
         </div>
 
         <!-- Campo Capacidad -->
-        <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
+        <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
             <div class="form-group">
                 {!! Form::label('capacidad', 'Capacidad:', ['for' => 'capacidad']) !!}
                 {!! Form::number('capacidad', old('capacidad'), ['id' => 'capacidad', 'class' => 'form-control', 'min' => '1', 'placeholder' => 'Capacidad de personas']) !!}
@@ -43,7 +43,7 @@
         </div>
 
         <!-- Campo Status -->
-        <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
+        <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
             <div class="form-group">
                 {!! Form::label('status', 'Status:', ['for' => 'status']) !!}
                 {!! Form::select('status', ['' => '-- Elige el status --', 'Habilitada' => 'Habilitada', 'Inhabilitada' => 'Inhabilitada'], old('status'), ['id' => 'status', 'class' => 'form-select']) !!}
@@ -53,27 +53,41 @@
             </div>
         </div>
 
-        <!-- Campo Horario Inicio -->
+        <!-- Campo Hora de reserva -->
         <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
             <div class="form-group">
                 {!! Form::label('horario_inicio', 'Hora de inicio:', ['for' => 'horario_inicio']) !!}
                 {!! Form::time('horario_inicio', old('horario_inicio'), ['id' => 'horario_inicio', 'class' => 'form-control']) !!}
                 @error('horario_inicio')
-                    <small class="text-danger">{{ $message }}</small>
+                <small class="text-danger">{{ $message }}</small>
                 @enderror
             </div>
         </div>
-
-        <!-- Campo Horario Fin -->
         <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
             <div class="form-group">
                 {!! Form::label('horario_fin', 'Hora fin:', ['for' => 'horario_fin']) !!}
-                {!! Form::time('horario_fin', old('horario_fin'), ['id' => 'horario_fin', 'class' => 'form-control']) !!}
+                {!! Form::time('horario_fin', old('horario_fin'), ['id' => 'horario_fin', 'class' => 'form-control', 'onchange' => 'validarHorario()']) !!}
                 @error('horario_fin')
-                    <small class="text-danger">{{ $message }}</small>
+                <small class="text-danger">{{ $message }}</small>
                 @enderror
+                <small id="error-horario" class="text-danger" style="display: none;">La hora de fin debe ser posterior a la hora de inicio.</small>
             </div>
         </div>
+
+        <script>
+            function validarHorario() {
+                let inicio = document.getElementById('horario_inicio').value;
+                let fin = document.getElementById('horario_fin').value;
+                let errorMensaje = document.getElementById('error-horario');
+
+                if (inicio && fin && inicio >= fin) {
+                    errorMensaje.style.display = 'block';
+                } else {
+                    errorMensaje.style.display = 'none';
+                }
+            }
+        </script>
+
 
         <!-- Botones -->
         <div class="col-xs-12 col-sm-12 col-md-12 mt-2">

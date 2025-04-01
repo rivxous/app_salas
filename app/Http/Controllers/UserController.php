@@ -10,8 +10,12 @@ class UserController extends Controller {
     /**
      * Muestre una lista del recurso.
      */
+    public function create()
+    {
+        return view('usuarios.nuevo');
+    }
     public function index() {
-        return view('usuarios/index');
+        return view('usuarios.index');
     }
 
     /**
@@ -25,6 +29,7 @@ class UserController extends Controller {
      * Almacene un recurso recién creado en almacenamiento.
      */
     public function store(Request $request) {
+//        dd($request->all());
         // Validar los datos enviados en la solicitud
         $request->validate([
             'name' => 'required|string|max:255',

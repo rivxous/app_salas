@@ -27,7 +27,7 @@ class SalasController extends Controller {
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse 
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'nombre' => [
@@ -49,11 +49,11 @@ class SalasController extends Controller {
             'horario_inicio.required' => 'El campo :attribute es requerido.',
             'horario_fin.required' => 'El campo :attribute es requerido.',
         ]);
-    
+
         Salas::create($request->all());
         return redirect()->route('salas.index')->with('success', 'Sala creada exitosamente!')->withInput();
     }
-    
+
     /**
      * Display the specified resource.
      */
@@ -71,7 +71,7 @@ class SalasController extends Controller {
     /**
      * Show the form for editing the specified resource.
      */
- 
+
     /**
      * Update the specified resource in storage.
      */
@@ -85,7 +85,7 @@ class SalasController extends Controller {
             'horario_inicio' => 'required',
             'horario_fin' => 'required',
         ], [
-            
+
             'ubicacion.required' => 'El campo :attribute es requerido.',
             'capacidad.required' => 'El campo :attribute es requerido.',
             'capacidad.numeric' => 'El campo :attribute debe ser numérico.',

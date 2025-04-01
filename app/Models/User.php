@@ -22,7 +22,7 @@ class User extends Authenticatable
         'apellido',
     ];
 
-    
+
     protected $hidden = [
         'password',
         'remember_token',
@@ -38,13 +38,13 @@ class User extends Authenticatable
     ];
 
 //    // Crear un user (Crear)
-//     public static function crearUsuario(Request $data) {
-//         return self::create([
-//             'name' => $data->name,
-//             'email' => $data->email,
-//             'password' => Hash::make($data->password), // Cifrar la contraseña
-//         ]);
-//     }
+     public static function crearUsuario(Request $data) {
+         return self::create([
+             'name' => $data->name,
+             'email' => $data->email,
+             'password' => Hash::make($data->password), // Cifrar la contraseña
+         ]);
+     }
 
     // Obtener todos los usuarios (Leer)
     public static function obtenerTodos() {
@@ -74,5 +74,15 @@ class User extends Authenticatable
             return true;
         }
         return false; // Retorna false si no se encuentra el usuario
+    }
+
+    /**
+     * @param string[] $fillable
+     * @return User
+     */
+    public function setFillable(array $fillable): User
+    {
+        $this->fillable = $fillable;
+        return $this;
     }
 }

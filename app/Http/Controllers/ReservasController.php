@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reservas;
+use App\Models\Salas;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -10,24 +12,34 @@ use Illuminate\Validation\Rule;
 
 class ReservasController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $reservas = Reservas::orderBy('id', 'desc')->get();
 
         return view('reservas.index', ['reservas' => $reservas]);
+//        return view('reservas.index')->with(['reservas' => $reservas]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create() {
-        return view('reservas.create');
+    public function create()
+    {
+        $salas = Salas::pluck('nombre', 'id');
+        $usuarios = User::pluck('name', 'id');
+//        dd($usuarios);
+
+        return view('reservas.create')
+            ->with(['salas' => $salas])
+            ->with(['usuarios' => $usuarios]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse 
+    public function store(Request $request): RedirectResponse
     {
+//        dd($request->all());
         $request->validate([
             'nombre' => [
                 'required',
@@ -44,15 +56,16 @@ class ReservasController extends Controller
             'tipoEvento.required' => 'El campo :attribute es requerido.',
             'horario.required' => 'El campo :attribute debe ser numérico.',
         ]);
-    
+
         Reservas::create($request->all());
         return redirect()->route('salas.index')->with('success', 'Reserva creada exitosamente!')->withInput();
     }
-    
+
     /**
      * Display the specified resource.
      */
-    public function show($id) {
+    public function show($id)
+    {
         $reservas = Reservas::find($id);
 
         if ($reservas) {
@@ -66,11 +79,12 @@ class ReservasController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
- 
+
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
 
         $validatedData = $request->validate([
             // 'nombre' => 'required|string|unique:salas,nombre,' . $id, // Valida la unicidad excluyendo el registro actual
@@ -101,7 +115,8 @@ class ReservasController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
         // Buscar la sala por su ID
         $reserva = Reservas::findOrFail($id);
 

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('tipoEvento');
             $table->dateTime('horario');
             $table->integer('fk_idSala');
+            $table->integer('fk_idUsuario')->comment('relacion de usuario creador de la reserva');
             $table->softDeletes();
             $table->timestamps();
         });
