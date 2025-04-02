@@ -4,7 +4,7 @@
 <div class="row">
     <div class="col-12">
         <div>
-            <h2 class="text-white">CRUD de Tareas</h2>
+            <h2 class="theme-global">CRUD de Tareas</h2>
         </div>
         <div>
             <a href="" class="btn btn-primary">Crear tarea</a>
@@ -12,7 +12,7 @@
     </div>
 
     <div class="col-12 mt-4">
-        <table class="table table-bordered text-white">
+        <table class="table table-bordered theme-global">
             <tr class="text-secondary">
                 <th>Tarea</th>
                 <th>Descripción</th>

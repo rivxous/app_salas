@@ -88,7 +88,6 @@
             }
         </script>
 
-
         <!-- Botones -->
         <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
             {!! Form::submit('Crear', ['class' => 'btn btn-primary']) !!}

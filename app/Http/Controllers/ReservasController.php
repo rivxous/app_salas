@@ -2,128 +2,159 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Participantes;
 use App\Models\Reservas;
 use App\Models\Salas;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReservasController extends Controller
 {
     public function index()
     {
-        $reservas = Reservas::orderBy('id', 'desc')->get();
+        try {
+            $reservas = Reservas::with(['sala', 'usuario_creador_reserva', 'participantes_reservas.usuario'])
+                ->orderBy('id', 'desc')
+                ->get()
+                ->map(function ($reserva) {
+                    $participantes = strtoupper($reserva->participantes_reservas->pluck('usuario.email')->implode(', '));
+                    $reserva->participantes = $participantes;
+                    unset($reserva->participantes_reservas);
+                    return $reserva;
+                });
 
-        return view('reservas.index', ['reservas' => $reservas]);
-//        return view('reservas.index')->with(['reservas' => $reservas]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $salas = Salas::pluck('nombre', 'id');
-        $usuarios = User::pluck('name', 'id');
-//        dd($usuarios);
-
-        return view('reservas.create')
-            ->with(['salas' => $salas])
-            ->with(['usuarios' => $usuarios]);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): RedirectResponse
-    {
-//        dd($request->all());
-        $request->validate([
-            'nombre' => [
-                'required',
-                Rule::unique('reservas')->whereNull('deleted_at') // Ignora registros "soft deleted"
-            ],
-            'titulo' => 'required',
-            'descripcion' => 'required|numeric',
-            'tipoEvento' => 'required',
-            'horario' => 'required',
-        ], [
-            'titulo.required' => 'El campo :attribute es requerido.',
-            'titulo.unique' => 'El nombre ingresado ya existe. Por favor, elige otro.',
-            'descripcion.required' => 'El campo :attribute es requerido.',
-            'tipoEvento.required' => 'El campo :attribute es requerido.',
-            'horario.required' => 'El campo :attribute debe ser numérico.',
-        ]);
-
-        Reservas::create($request->all());
-        return redirect()->route('salas.index')->with('success', 'Reserva creada exitosamente!')->withInput();
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        $reservas = Reservas::find($id);
-
-        if ($reservas) {
-            return view('reservas.edit')->with(['reservas' => $reservas]);
-            //    return response()->json($sala);
-        } else {
-            return response()->json(['msj' => 'No se encontro la reserva'], 404);
+            return view('reservas.index', ['reservas' => $reservas]);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener las reservas: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar las reservas.']);
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
+    public function create()
     {
+        try {
+            $salas = Salas::pluck('nombre', 'id');
+            $usuarios = User::pluck('name', 'id');
 
-        $validatedData = $request->validate([
-            // 'nombre' => 'required|string|unique:salas,nombre,' . $id, // Valida la unicidad excluyendo el registro actual
-            'titulo' => 'required',
-            'descripcion' => 'required|numeric',
+            return view('reservas.create', compact('salas', 'usuarios'));
+        } catch (\Exception $e) {
+            Log::error('Error al cargar el formulario de creación: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar el formulario de creación.']);
+        }
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'titulo' => 'required|unique:reservas,titulo,NULL,id,deleted_at,NULL',
+            'descripcion' => 'required',
             'tipoEvento' => 'required',
-            'horario' => 'required',
-        ], [
-            'titulo.required' => 'El campo :attribute es requerido.',
-            'titulo.unique' => 'El nombre ingresado ya existe. Por favor, elige otro.',
-            'descripcion.required' => 'El campo :attribute es requerido.',
-            'tipoEvento.required' => 'El campo :attribute es requerido.',
-            'horario.required' => 'El campo :attribute debe ser numérico.',
+            'horario' => 'required|date',
+            'fk_idSala' => 'required|exists:salas,id',
+            'participantes' => 'required|array|min:1',
+            'participantes.*' => 'exists:users,id',
         ]);
 
+        try {
+            $reserva = new Reservas();
+            $reserva->fill($request->only(['titulo', 'descripcion', 'tipoEvento', 'horario', 'fk_idSala']));
+            $reserva->fk_idUsuario = Auth::id();
+            $reserva->save();
 
-        // Buscar el modelo por su ID
-        $reserva = Reservas::findOrFail($id);
+            if ($request->has('participantes')) {
+                $participantes = collect($request->participantes)->map(fn($usuarioId) => new Participantes([
+                    'fk_idReserva' => $reserva->id,
+                    'fk_idUsuario' => $usuarioId,
+                ]));
+                $reserva->participantes_reservas()->saveMany($participantes);
+            }
 
-        // Actualizar los datos del modelo
-        $reserva->update($validatedData);
+            return redirect()->route('reservas.index')->with('success', 'Reserva creada exitosamente!');
+        } catch (\Exception $e) {
+            Log::error('Error al crear la reserva: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al crear la reserva.']);
+        }
+    }
 
-        // Redireccionar con un mensaje de éxito
-        return redirect()->route('reserva.index')->with('success', 'Reserva actualizada correctamente.');
+    public function show($id)
+    {
+        try {
+            $reserva = Reservas::findOrFail($id);
+            $salas = Salas::pluck('nombre', 'id');
+            $usuarios = User::pluck('name', 'id');
+
+            return view('reservas.edit', compact('reserva', 'salas', 'usuarios'));
+        } catch (ModelNotFoundException $e) {
+            Log::error('Reserva no encontrada: ' . $e->getMessage());
+            return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener la reserva: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar la reserva.']);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'titulo' => 'required',
+            'descripcion' => 'required|string',
+            'tipoEvento' => 'required',
+            'horario' => 'required|date',
+            'fk_idSala' => 'required|exists:salas,id',
+            'participantes' => 'required|array|min:1',
+            'participantes.*' => 'exists:users,id',
+        ]);
+
+        try {
+            // Buscar la reserva
+            $reserva = Reservas::findOrFail($id);
+
+            // Actualizar los datos de la reserva
+            $reserva->fill($request->only(['titulo', 'descripcion', 'tipoEvento', 'horario', 'fk_idSala']));
+            $reserva->save();
+
+            // Actualizar participantes
+            if ($request->has('participantes')) {
+                // Eliminar participantes actuales
+                $reserva->participantes_reservas()->delete();
+
+                // Insertar nuevos participantes
+                $participantes = collect($request->participantes)->map(fn($usuarioId) => new Participantes([
+                    'fk_idReserva' => $reserva->id,
+                    'fk_idUsuario' => $usuarioId,
+                ]));
+
+                $reserva->participantes_reservas()->saveMany($participantes);
+            }
+
+            return redirect()->route('reservas.index')->with('success', 'Reserva actualizada correctamente.');
+        } catch (ModelNotFoundException $e) {
+            Log::error('Reserva no encontrada: ' . $e->getMessage());
+            return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar la reserva: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al actualizar la reserva.']);
+        }
     }
 
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
-        // Buscar la sala por su ID
-        $reserva = Reservas::findOrFail($id);
+        try {
+            $reserva = Reservas::findOrFail($id);
+            $reserva->delete();
 
-        // Eliminar la sala
-        $reserva->delete();
-
-        // Redirigir con un mensaje de éxito
-        return redirect()->route('reservas.index')->with('success', 'Reserva eliminada correctamente.');
+            return redirect()->route('reservas.index')->with('success', 'Reserva eliminada correctamente.');
+        } catch (ModelNotFoundException $e) {
+            Log::error('Reserva no encontrada: ' . $e->getMessage());
+            return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar la reserva: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al eliminar la reserva.']);
+        }
     }
 }

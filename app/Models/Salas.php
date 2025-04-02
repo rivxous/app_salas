@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Salas extends Model {
     use HasFactory;
     use SoftDeletes;
+    protected $with=['reservas'];
 
     protected $fillable = [
         'nombre',
@@ -18,4 +19,11 @@ class Salas extends Model {
         'horario_inicio',
         'horario_fin'
     ];
+
+    function reservas()
+    {
+        return $this->hasMany(Reservas::class, 'fk_idSala', 'id');
+    }
+
+
 }

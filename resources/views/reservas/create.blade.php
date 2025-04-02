@@ -8,6 +8,16 @@
             </div>
         </div>
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         {!! Form::open(['route' => 'reservas.store', 'method' => 'POST']) !!}
         <div class="row">
             <!-- Campo Titulo -->
@@ -24,7 +34,7 @@
             <!-- Campo Descripción -->
             <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
                 <div class="form-group">
-                    {!! Form::label('ubicacion', 'Descripción:') !!}
+                    {!! Form::label('descripcion', 'Descripción:') !!}
                     {!! Form::text('descripcion', old('descripcion'), ['id' => 'descripcion', 'class' => 'form-control', 'placeholder' => 'Descripción de la reserva']) !!}
                     @error('descripcion')
                     <small class="text-danger">{{ $message }}</small>
@@ -47,18 +57,7 @@
             <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
                 <div class="form-group">
                     {!! Form::label('horario', 'Horario:') !!}
-                    {!! Form::date('horario', old('horario'), ['id' => 'horario', 'class' => 'form-control']) !!}
-
-                    @error('horario')
-                    <small class="text-danger">{{ $message }}</small>
-                    @enderror
-                </div>
-            </div>
-            <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
-                <div class="form-group">
-                    {!! Form::label('horario', 'Horario:') !!}
-                    {!! Form::time('horario', old('horario'), ['id' => 'horario', 'class' => 'form-control']) !!}
-
+                    {!! Form::input('datetime-local', 'horario', old('horario'), ['class' => 'form-control']) !!}
                     @error('horario')
                     <small class="text-danger">{{ $message }}</small>
                     @enderror
@@ -69,7 +68,7 @@
             <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
                 <div class="form-group">
                     {!! Form::label('fk_idSala', 'Elija la Sala:') !!}
-                    {!! Form::select('fk_idSala', $salas, old('fk_idSala'), ['id' => 'fk_idSala', 'class' => 'form-select','placeholder'=>'--Seleccione--']) !!}
+                    {!! Form::select('fk_idSala', $salas, old('fk_idSala'), ['id' => 'fk_idSala', 'class' => 'form-select', 'placeholder'=>'--Seleccione--']) !!}
                     @error('fk_idSala')
                     <small class="text-danger">{{ $message }}</small>
                     @enderror
@@ -79,9 +78,9 @@
             <!-- Campo Selección de Participantes -->
             <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
                 <div class="form-group">
-                    {!! Form::label('fk_participantes', 'Elija los participantes:') !!}
-                    {!! Form::select('fk_participantes', $usuarios, old('fk_participantes'), ['id' => 'fk_participantes', 'class' => 'form-select','name'=>'participantes[]', 'multiple'=>'multiple']) !!}
-                    @error('fk_participantes')
+                    {!! Form::label('participantes', 'Elija los participantes:') !!}
+                    {!! Form::select('participantes[]', $usuarios, old('participantes'), ['id' => 'fk_participantes', 'class' => 'form-select', 'multiple' => 'multiple']) !!}
+                    @error('participantes')
                     <small class="text-danger">{{ $message }}</small>
                     @enderror
                 </div>
@@ -95,6 +94,7 @@
         </div>
         {!! Form::close() !!}
     </div>
+
     @section('js')
         <script>
             $(document).ready(function() {
@@ -103,7 +103,6 @@
                     allowClear: true
                 });
             });
-
         </script>
     @endsection
 @endsection

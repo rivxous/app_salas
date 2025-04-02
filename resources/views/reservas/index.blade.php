@@ -4,7 +4,7 @@
     <div class="row">
         <div class="col-12">
             <div>
-                <h2 class="text-white">Listado de reservas QQGAS</h2>
+                <h2 class="theme-global">Listado de reservas QQGAS</h2>
             </div>
             <div>
                 <a href="{{ route('reservas.create') }}" class="btn btn-primary">Crear reserva</a>
@@ -25,23 +25,27 @@
         @endif
 
         <div class="col-12 mt-4">
-            <table class="table table-bordered text-white">
+            <table class="table table-bordered theme-global">
                 <tr class="text-secondary">
                     <th>TITULO</th>
                     <th>DESCRIPCIÓN</th>
                     <th>TIPO DE EVENTO</th>
                     <th>HORARIO</th>
                     <th>SALA</th>
+                    <th>CREADOR DE LA RESERVA</th>
+                    <th>PARTICIPANTES</th>
                     <th>ACCIONES</th>
                 </tr>
                 @foreach ($reservas as $reserva)
                     <tr>
-                        <td class="fw-bold">{{ $reserva->nombre }}</td>
-                        <td>{{ $reserva->ubicacion }}</td>
-                        <td>{{ $reserva->capacidad }}</td>
-                        <td><span class="badge bg-warning fs-6">{{ $reserva->status }}</span></td>
-                        <td>{{ $reserva->horario_inicio }}</td>
-                        <td>{{ $reserva->horario_fin }}</td>
+                        <td class="fw-bold">{{ strtoupper($reserva->titulo) }}</td>
+                        <td>{{ $reserva->descripcion }}</td>
+                        <td>{{ $reserva->tipoEvento }}</td>
+                        <td>{{ $reserva->horario }}</td>
+                         <td>{{ $reserva->sala->nombre }}</td>
+                         <td>{{ $reserva->usuario_creador_reserva->name }}</td>
+                         <td>{{ $reserva->participantes }}</td>
+
                         <td>
                             <a href="{{ route('reservas.show', ['reserva' => $reserva->id]) }}" class="btn btn-warning">Editar</a>
 
