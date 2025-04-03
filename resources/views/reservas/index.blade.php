@@ -43,7 +43,7 @@
                         <td>{{ $reserva->tipoEvento }}</td>
                         <td>{{ $reserva->horario }}</td>
                          <td>{{ $reserva->sala->nombre }}</td>
-                         <td>{{ $reserva->usuario_creador_reserva->name }}</td>
+                         <td>{{ $reserva->usuario_creador_reserva->nombre }}</td>
                          <td>{{ $reserva->participantes }}</td>
 
                         <td>

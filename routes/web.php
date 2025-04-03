@@ -41,7 +41,7 @@ Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login'])->name('login.post');
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('user/nuevo', [UserController::class, 'create']);
-Route::post('asdsadadsadd', [UserController::class, 'store'])->name('guardar_usuario');
+Route::post('user/nuevo', [UserController::class, 'store'])->name('guardar_usuario');
 Route::get('/', function () {
     return view('user/nuevo');
 })->middleware('auth');

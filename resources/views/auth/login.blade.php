@@ -2,30 +2,59 @@
 
 @section('content')
 
-    <div class="card p-4 bg-light">
-        <form class="" method="POST" action="{{ route('login.post') }}">
-             @csrf
-            <div>
-                <h1 class=" p-2 text-center">Login</h1>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
+                <div class="card p-4 bg-light shadow">
+                    <h1 class="text-center mb-4">Iniciar Sesión</h1>
+
+                    {!! Form::open(['route' => 'login.post', 'method' => 'POST']) !!}
+                    @csrf
+
+                    <div class="form-group mb-3">
+                        {!! Form::label('username', 'Usuario:', ['class' => 'form-label']) !!}
+                        {!! Form::text('username', old('username'), [
+                            'id' => 'username',
+                            'class' => 'form-control',
+                            'placeholder' => 'Ingrese su usuario',
+                            'required' => true,
+                            'autofocus' => true
+                        ]) !!}
+                        @error('username')
+                        <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="form-group mb-3">
+                        {!! Form::label('password', 'Contraseña:', ['class' => 'form-label']) !!}
+                        {!! Form::password('password', [
+                            'id' => 'password',
+                            'class' => 'form-control',
+                            'placeholder' => 'Ingrese su contraseña',
+                            'required' => true
+                        ]) !!}
+                        @error('password')
+                        <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-primary w-100" type="submit">Iniciar sesión</button>
+                    </div>
+                    {!! Form::close() !!}
+                </div>
             </div>
-            <div class="form-group text-left">
-                <label for="usuario">Usuario:</label>
-                <input type="email" name="email" class="form-control" placeholder="Ingrese su usuario" required>
-            </div>
-
-            <div class="form-group text-left">
-                <label for="clave">Contraseña:</label>
-                <input type="password" name="password" class="form-control" placeholder="Ingrese su contraseña"
-                       required>
-            </div>
-
-            <div class="form-group text-center p-2">
-                <button class="btn btn-danger" type="submit">Iniciar sesión</button>
-
-            </div>
-        </form>
-
+        </div>
     </div>
 
 @endsection

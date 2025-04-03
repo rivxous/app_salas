@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
@@ -11,20 +12,25 @@ use Illuminate\Http\Request;
 class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
+    use SoftDeletes;
 
     protected $table = 'users'; // Nombre de la tabla en la base de datos
-
+    protected $primaryKey = 'username';
     protected $fillable = [
-        'userName',
-        'name',
-        'email',
-        'password',
+        'username',
+        'nombre',
         'apellido',
+        'ubicacion',
+        'unidad_funcional',
+        'departamento',
+        'area',
+        'cargo',
+        'email',
+        'rol',
+        'password'
     ];
 
-
     protected $hidden = [
-        'password',
         'remember_token',
     ];
 
@@ -37,37 +43,65 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-//    // Crear un user (Crear)
-     public static function crearUsuario(Request $data) {
-         return self::create([
-             'name' => $data->name,
-             'email' => $data->email,
-             'password' => Hash::make($data->password), // Cifrar la contraseña
-         ]);
-     }
+    //    // Crear un user (Crear)
+    public static function crearUsuario(Request $data)
+    {
+        $userData = $data->only((new self())->getFillable());
+
+        // Asegura que la contraseña sea cifrada antes de crear el usuario
+        if (!empty($data->input('password'))) {
+            $userData['password'] = Hash::make($data->input('password'));
+        }
+
+        return self::create($userData);
+    }
+
 
     // Obtener todos los usuarios (Leer)
-    public static function obtenerTodos() {
+    public static function obtenerTodos()
+    {
         return self::all();
     }
 
+    public static function obtener($username, string $column = 'usuername')
+    {
+        if (!in_array($column, (new self())->getFillable())) {
+            throw new \InvalidArgumentException("La columna '{$column}' no está en fillable y no puede ser consultada.");
+        }
+        return self::where($column, $username)->first();
+    }
+
     // Obtener un usuario por ID (Leer)
-    public static function obtenerPorId($id) {
+    public static function obtenerPorId($id)
+    {
         return self::find($id);
     }
 
-    // Actualizar un usuario existente (Guardar)
-    public static function actualizarUsuario($id, $data) {
+    public static function actualizarUsuario($id, Request $data)
+    {
         $user = self::find($id);
         if ($user) {
-            $user->update($data);
+            $userData = $data->only(array_merge((new self())->getFillable(), ['password']));
+
+            // Verifica si se ha pasado una nueva contraseña
+            if (!empty($data['password'])) {
+                $userData['password'] = Hash::make($data['password']); // Cifra la nueva contraseña
+            } else {
+                unset($userData['password']); // Evita sobreescribir la contraseña si no se pasa una nueva
+            }
+
+            // Actualiza los datos incluyendo 'password' si está presente
+            $user->update($userData);
+
             return $user;
         }
-        return null; // Retorna null si no se encuentra el usuario
+        return null; // Retorna null si el usuario no existe
     }
 
+
     // Eliminar un usuario (Eliminar)
-    public static function eliminarUsuario($id) {
+    public static function eliminarUsuario($id)
+    {
         $user = self::find($id);
         if ($user) {
             $user->delete();
@@ -85,4 +119,9 @@ class User extends Authenticatable
         $this->fillable = $fillable;
         return $this;
     }
+
+//    public function getAuthIdentifierName()
+//    {
+//        return 'id';
+//    }
 }

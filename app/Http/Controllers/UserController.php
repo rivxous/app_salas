@@ -32,7 +32,9 @@ class UserController extends Controller {
 //        dd($request->all());
         // Validar los datos enviados en la solicitud
         $request->validate([
-            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
         ]);

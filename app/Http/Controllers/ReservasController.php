@@ -38,7 +38,8 @@ class ReservasController extends Controller
     {
         try {
             $salas = Salas::pluck('nombre', 'id');
-            $usuarios = User::pluck('name', 'id');
+            $usuarios = User::pluck('nombre', 'id');
+//            dd($usuarios);
 
             return view('reservas.create', compact('salas', 'usuarios'));
         } catch (\Exception $e) {
@@ -49,6 +50,7 @@ class ReservasController extends Controller
 
     public function store(Request $request)
     {
+//        dd($request->all());
         $request->validate([
             'titulo' => 'required|unique:reservas,titulo,NULL,id,deleted_at,NULL',
             'descripcion' => 'required',
@@ -60,6 +62,7 @@ class ReservasController extends Controller
         ]);
 
         try {
+//            dd(Auth::id());
             $reserva = new Reservas();
             $reserva->fill($request->only(['titulo', 'descripcion', 'tipoEvento', 'horario', 'fk_idSala']));
             $reserva->fk_idUsuario = Auth::id();
@@ -85,7 +88,7 @@ class ReservasController extends Controller
         try {
             $reserva = Reservas::findOrFail($id);
             $salas = Salas::pluck('nombre', 'id');
-            $usuarios = User::pluck('name', 'id');
+            $usuarios = User::pluck('nombre', 'id');
 
             return view('reservas.edit', compact('reserva', 'salas', 'usuarios'));
         } catch (ModelNotFoundException $e) {
