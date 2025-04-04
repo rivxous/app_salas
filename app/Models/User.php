@@ -15,7 +15,7 @@ class User extends Authenticatable
     use SoftDeletes;
 
     protected $table = 'users'; // Nombre de la tabla en la base de datos
-    protected $primaryKey = 'username';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'username',
         'nombre',
@@ -27,12 +27,22 @@ class User extends Authenticatable
         'cargo',
         'email',
         'rol',
-        'password'
+        'password',
+        'estatus'  // 1 activo, 0 inactivo
     ];
 
     protected $hidden = [
         'remember_token',
     ];
+
+    public function scopeActivos($query)
+    {
+        return $query->where('estatus', 1);
+    }
+    public function scopeInactivos($query)
+    {
+        return $query->where('estatus', 0);
+    }
 
     /**
      * Los atributos que deben ser convertidos a tipos nativos.

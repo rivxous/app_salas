@@ -24,6 +24,6 @@ class Participantes extends Model
 
     function usuario()
     {
-        return $this->hasOne(User::class, 'id', 'fk_idUsuario');
+        return $this->hasOne(User::class, 'id', 'fk_idUsuario')->activos();
     }
 }

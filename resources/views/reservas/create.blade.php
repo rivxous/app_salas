@@ -1,5 +1,5 @@
 @extends('layouts.base')
-
+@section('title','Creación de Reservas')
 @section('content')
     <div class="row">
         <div class="col-12">

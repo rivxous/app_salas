@@ -4,45 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>@yield('title','Sistema de Reserva de Salas')</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+    <!-- Estilos adicionales -->
     <link rel="stylesheet" href="{{ asset('js/select2/select2.min.css') }}">
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+
+    <!-- Librerías JS -->
     <script src="{{ asset('js/jquery.min.js') }}"></script>
     <script src="{{ asset('js/select2/select2.min.js') }}"></script>
     <script src="{{ asset('js/sweetalert2.js') }}"></script>
+
+    <!-- Estilos personalizados -->
     <style>
         .light-theme {
-            background-color: #f8f9fa; /* bg-light */
-            color: #000; /* text-black */
+            background-color: #f8f9fa; /* Fondo claro */
+            color: #000; /* Texto negro */
         }
 
         .dark-theme {
-            background-color: #000; /* bg-black */
-            color: #fff; /* text-white */
-        }
-        .theme-global{
-            background-color: #f8f9fa; /* bg-light */
-            color: #000; /* text-black */
+            background-color: #000; /* Fondo oscuro */
+            color: #fff; /* Texto blanco */
         }
 
+        .theme-global {
+            background-color: #f8f9fa;
+            color: #000;
+        }
     </style>
-    <title>CRUD laravel 10</title>
 </head>
 <body class="theme-global">
+
+<!-- Botón de Cerrar Sesión en la esquina superior derecha -->
+<div class="container-fluid">
+    <div class="d-flex justify-content-end mt-3 me-3">
+        @auth()
+            <button id="logout-button" class="btn btn-danger">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        @endauth
+    </div>
+</div>
+
+<!-- Contenido principal -->
 <div class="container">
     @yield('content')
 </div>
 
-
-
+<!-- Script de cierre de sesión con confirmación -->
+<script>
+    document.getElementById('logout-button').addEventListener('click', function () {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Se cerrará tu sesión.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, cerrar sesión'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "{{ route('logout') }}";
+            }
+        });
+    });
+</script>
 
 @yield('js')
 
 </body>
 </html>
-
-<!-- Esta es una plantilla base en la que se define una
-estructura y un diseño comun para tu sitio web, ya sea
-header, menu, footer o lo que se vaya a usar en todo
-el sitio web y es enlazado al resto de paginas -->

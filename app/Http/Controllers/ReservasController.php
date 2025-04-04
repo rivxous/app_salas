@@ -21,7 +21,15 @@ class ReservasController extends Controller
                 ->orderBy('id', 'desc')
                 ->get()
                 ->map(function ($reserva) {
-                    $participantes = strtoupper($reserva->participantes_reservas->pluck('usuario.email')->implode(', '));
+                    // Eliminamos posibles nombres de usuario duplicados y valores vacíos
+                    $participantes = strtoupper(
+                        $reserva->participantes_reservas
+                            ->pluck('usuario.username')
+                            ->unique()
+                            ->filter() // Filtra valores vacíos
+                            ->implode(', ')
+                    );
+
                     $reserva->participantes = $participantes;
                     unset($reserva->participantes_reservas);
                     return $reserva;
@@ -33,6 +41,8 @@ class ReservasController extends Controller
             return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar las reservas.']);
         }
     }
+
+
 
     public function create()
     {

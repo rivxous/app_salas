@@ -19,22 +19,32 @@ class AuthController extends Controller {
             'username' => 'required',
             'password' => 'required'
         ]);
+
         $credentials = $request->only('username', 'password');
 
-        // VERIFICAR LDAP
-        if (true) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
+        try {
+            // Conexión a LDAP
             $conexion = ldap_connect(env('LDAP_HOST'));
             ldap_set_option($conexion, LDAP_OPT_PROTOCOL_VERSION, 3);
             ldap_set_option($conexion, LDAP_OPT_REFERRALS, 0);
-            // dd($conexion, "{$credentials['username']}@" . env('LDAP_DOMAIN'), $credentials['password']);
-            if (ldap_bind($conexion, "{$credentials['username']}@" . env('LDAP_DOMAIN'), $credentials['password'])) {
-                $user=User::where('username',$credentials['username'])->get();
-//                $user = User::obtener($credentials['username'], 'username'); // CONSULTA USUARIO EN MYSQL
 
-                if (!$user==false) { // SI NO EXISTE EL USUARIO EN LA BASE DE DATOS LOCAL, LO CREA
+            if (!$conexion) {
+                return redirect()->back()->withErrors(['error' => 'No se pudo conectar al servidor LDAP.']);
+            }
 
+            // Intento de autenticación con LDAP
+            if (true) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
+                if (!@ldap_bind($conexion, "{$credentials['username']}@" . env('LDAP_DOMAIN'), $credentials['password'])) {
+                    return redirect()->back()->withErrors(['error' => 'Credenciales LDAP incorrectas. Verifica tu usuario y contraseña.']);
+                }
+
+                // Obtener usuario en la base de datos
+                $user = User::where('username', $credentials['username'])->first();
+
+                if (!$user) { // Si no existe, lo crea
                     $consulta = ldap_search($conexion, env('LDAP_DN'), "(samaccountname={$credentials['username']})");
                     $data = ldap_get_entries($conexion, $consulta);
+
                     User::crearUsuario(new Request([
                         'username' => $data[0]['samaccountname'][0],
                         'password' => $credentials['password'],
@@ -42,21 +52,26 @@ class AuthController extends Controller {
                         'nombre' => $data[0]['givenname'][0],
                         'email' => $data[0]['mail'][0]
                     ]));
-                } else { // SI NO ACTUALIZA LA CONTRASEÑA
-                    User::actualizarUsuario($user['id'], new Request([
+                    ldap_close($conexion);
+                } else {
+                    User::actualizarUsuario($user->id, new Request([
                         'password' => $credentials['password']
                     ]));
                 }
-                ldap_close($conexion); // CERRAR CONECCIÓN LDAP
             }
-        }
 
-        if (Auth::attempt($credentials)) {
-            return redirect()->route('salas.index');
-        }
+            // Autenticación en Laravel
+            if (Auth::attempt($credentials)) {
+                return redirect()->route('/');
+            }
 
-        return redirect()->back()->withErrors(['error' => 'Credenciales incorrectas.']);
+            return redirect()->back()->withErrors(['error' => 'Credenciales incorrectas.']);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Error en autenticación: ' . $e->getMessage()]);
+        }
     }
+
+
 
     public function logout() {
         Auth::logout();

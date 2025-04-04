@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('departamento')->nullable();
             $table->string('area')->nullable();
             $table->string('cargo')->nullable();
+            $table->boolean('estatus')->default(1)->comment('por defecto activo 1, para inactivo 0');
 
             $table->enum('rol', ['admin', 'user'])->default('user');
             $table->string('email')->unique();

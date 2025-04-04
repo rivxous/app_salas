@@ -1,5 +1,7 @@
 @extends('layouts.base')
 
+@section('title','Lista de Reservas')
+
 @section('content')
     <div class="row">
         <div class="col-12">
@@ -27,6 +29,7 @@
         <div class="col-12 mt-4">
             <table class="table table-bordered theme-global">
                 <tr class="text-secondary">
+{{--                    <th>ESTADO</th>--}}
                     <th>TITULO</th>
                     <th>DESCRIPCIÓN</th>
                     <th>TIPO DE EVENTO</th>
@@ -38,6 +41,7 @@
                 </tr>
                 @foreach ($reservas as $reserva)
                     <tr>
+{{--                         <td>{{ !is_null($user->deleted_at ) ? "Inactivo" :  'Activo'}}</td>--}}
                         <td class="fw-bold">{{ strtoupper($reserva->titulo) }}</td>
                         <td>{{ $reserva->descripcion }}</td>
                         <td>{{ $reserva->tipoEvento }}</td>

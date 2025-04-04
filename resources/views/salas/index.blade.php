@@ -1,5 +1,5 @@
 @extends('layouts.base')
-
+@section('title','Listado de Salas')
 @section('content')
 <div class="row">
     <div class="col-12">

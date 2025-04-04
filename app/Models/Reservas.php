@@ -25,7 +25,7 @@ class Reservas extends Model
 
     public function usuario_creador_reserva()
     {
-        return $this->hasOne(User::class, 'id', 'fk_idUsuario');
+        return $this->hasOne(User::class, 'id', 'fk_idUsuario')->activos();
     }
 
     public function sala()

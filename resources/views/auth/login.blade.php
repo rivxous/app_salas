@@ -5,6 +5,7 @@
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-6">
+                <!-- Mostrar errores si existen -->
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul>
@@ -51,6 +52,7 @@
                     <div class="text-center">
                         <button class="btn btn-primary w-100" type="submit">Iniciar sesión</button>
                     </div>
+
                     {!! Form::close() !!}
                 </div>
             </div>

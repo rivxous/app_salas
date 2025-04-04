@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Salas;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
-class UserController extends Controller {
+class UserController extends Controller
+{
     /**
      * Muestre una lista del recurso.
      */
@@ -14,8 +18,12 @@ class UserController extends Controller {
     {
         return view('usuarios.nuevo');
     }
-    public function index() {
-        return view('usuarios.index');
+
+    public function index()
+    {
+//        dd('aqui');
+        $user = User::activos()->get();
+        return view('usuarios.index')->with(['users' => $user]);
     }
 
     /**
@@ -28,7 +36,8 @@ class UserController extends Controller {
     /**
      * Almacene un recurso recién creado en almacenamiento.
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
 //        dd($request->all());
         // Validar los datos enviados en la solicitud
         $request->validate([
@@ -51,43 +60,53 @@ class UserController extends Controller {
     /**
      * Muestra el recurso especificado.
      */
-    public function show($id) {
-
-        $usuario = User::obtenerPorId($id);
-        if ($usuario) {
-            return view('usuarios/ver', [
-                'usuario' => $usuario
-            ]);
-        } else {
-            abort(404, 'Usuario no encontrado');
+    public function show($id)
+    {
+        try {
+            $usuario = User::findOrFail($id);
+            return view('users.edit')->with(['usuario' => $usuario]);
+        } catch (ModelNotFoundException $e) {
+            Log::error('Usuario no encontrado: ' . $e->getMessage());
+            return redirect()->route('users.index')->withErrors(['error' => 'No se encontró el usuario.']);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener el usuario: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar el usuario.']);
         }
     }
+
 
     /**
      * Muestre el formulario para editar el recurso especificado.
      */
-    public function edit($id) {
-        $usuario = User::obtenerPorId($id);
-        if ($usuario) {
-            return view('usuarios/editar', [
-                'usuario' => $usuario
-            ]);
-        } else {
-            abort(404, 'Usuario no encontrado');
+    public function edit($id)
+    {
+//        $usuario = User::obtenerPorId($id);
+//        if ($usuario) {
+//            return view('usuarios/editar', [
+//                'usuario' => $usuario
+//            ]);
+//        } else {
+//            abort(404, 'Usuario no encontrado');
+//        }
+    }
+
+    /**
+     * Elimine el recurso especificado del almacenamiento.
+     */
+    public function destroy($id)
+    {
+        try {
+            $usuario = User::findOrFail($id);
+            $usuario->estatus = 0; //inactivar el usuario
+            $usuario->save();
+            return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
+        } catch (ModelNotFoundException $e) {
+            Log::error('Usuario no encontrado: ' . $e->getMessage());
+            return redirect()->route('users.index')->withErrors(['error' => 'No se encontró el usuario.']);
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar el usuario: ' . $e->getMessage());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al eliminar el usuario.']);
         }
     }
 
-        /**
-     * Elimine el recurso especificado del almacenamiento.
-     */
-    public function destroy($id) {
-            $usuario = User::obtenerPorId($id);
-            if ($usuario) {
-                return view('usuarios/eliminar', [
-                    'usuario' => $usuario
-                ]);
-            } else {
-                abort(404, 'Usuario no encontrado');
-            }
-        }
 }
