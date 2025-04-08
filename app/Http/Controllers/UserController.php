@@ -109,4 +109,12 @@ class UserController extends Controller
         }
     }
 
+    public function sync()
+    {
+        // Sincronizar usuarios desde una fuente externa - LDAP
+        Session::flash('success', 'Usuarios sincronizados exitosamente.');
+        return redirect()->route('users.index');
+    }
+
+
 }

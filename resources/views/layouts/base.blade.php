@@ -22,6 +22,12 @@
     <script src="{{ asset('js/select2/select2.min.js') }}"></script>
     <script src="{{ asset('js/sweetalert2.js') }}"></script>
 
+    {{-- Full calendar --}}
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.2/main.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.2/main.min.js"></script>
+
+
     <!-- Estilos personalizados -->
     <style>
         .light-theme {

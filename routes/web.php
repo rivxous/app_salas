@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SalasController;
+use App\Http\Controllers\InicioController;
 use App\Http\Controllers\ReservasController;
 
 
@@ -30,26 +31,30 @@ Route::get('p3', [ReservasController::class, function () {
     return response()->json($salas);
 
 }]);
-Route::get('/', function () {
-    return redirect()->route('reservas.index');
-})->name('/');
+Route::get('/', [InicioController::class, 'inicio'])->name('/');
+
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login'])->name('login.post');
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('user/nuevo', [UserController::class, 'create']);
 Route::post('user/nuevo', [UserController::class, 'store'])->name('guardar_usuario');
+Route::get('/users/sync', [UserController::class, 'sync'])->name('users.sync'); //sincronizar usuarios
+
 
 Route::prefix('/auth')->middleware('auth')->group(function () {
 
     Route::resource('salas', SalasController::class);
+    Route::get('listar-todas-salas', [SalasController::class,'listarTodas']);
+    Route::post('buscar-salas-horios-disponibles', [ReservasController::class,'buscar_salas_horios_disponibles']);
     Route::resource('reservas', ReservasController::class);
+    Route::get('listar_reservas_calendario',[ReservasController::class,'listar_reservas_calendario'])->name('listar_reservas_calendario');
 
     // WEB
     Route::prefix('/usuarios')->group(function () {
-        Route::get('/', [UserController::class, 'index']);
-        Route::get('/nuevo', [UserController::class, 'create']);
-        Route::get('/{id}', [UserController::class, 'show']);
-        Route::get('/editar/{id}', [UserController::class, 'edit']);
+        Route::get('/', [UserController::class, 'index'])->name('usuarios.index');
+        Route::get('/nuevo', [UserController::class, 'create'])->name('usuarios.create');
+        Route::get('/{id}', [UserController::class, 'show'])->name('usuarios.show');
+        Route::get('/editar/{id}', [UserController::class, 'edit'])->name('usuarios.edit');
     });
 
     //api

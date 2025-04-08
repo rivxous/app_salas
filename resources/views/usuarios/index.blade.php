@@ -1,36 +1,36 @@
 @extends('layouts.base')
 
+@section('title', 'Listado de Usuarios')
+
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            <div>
-                <h2 class="theme-global">Listado de Usuarios</h2>
-            </div>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="text-primary">Listado de Usuarios</h2>
+            <button class="btn btn-info shadow-sm" onclick="confirmSync()">Sincronizar Usuarios</button>
         </div>
 
-        <div class="col-12 mt-4">
-            <table class="table table-bordered theme-global">
-                <tr class="text-secondary">
-
-                    <th>USUARIO</th>
-                    <th>NOMBRES</th>
-                    <th>APELLIDOS</th>
-                    <th>UNIDAD FUNCIONAL</th>
-                    <th>E-MIAL</th>
-                    <th>ACCIONES</th>
+        <div class="table-responsive">
+            <table class="table table-hover shadow-sm">
+                <thead class="table-dark">
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Unidad Funcional</th>
+                    <th>Email</th>
+                    <th>Acciones</th>
                 </tr>
+                </thead>
+                <tbody>
                 @foreach ($users as $user)
                     <tr>
-
-                        <td class="fw-bold">{{ $user->username }}</td>
+                        <td class="fw-bold text-uppercase">{{ $user->username }}</td>
                         <td>{{ $user->nombre }}</td>
                         <td>{{ $user->apellido }}</td>
                         <td>{{ $user->unidad_funcinal }}</td>
                         <td>{{ $user->email }}</td>
                         <td>
-                            {{--                            <a href="{{ route('users.show', ['user' => $user->id]) }}" class="btn btn-warning">Editar</a>--}}
-
-                            <button class="btn btn-danger" onclick="confirmDelete({{ $user->id }})">Eliminar</button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $user->id }})">Eliminar</button>
 
                             <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', ['id' => $user->id]) }}" method="POST" style="display: none;">
                                 @csrf
@@ -39,6 +39,7 @@
                         </td>
                     </tr>
                 @endforeach
+                </tbody>
             </table>
         </div>
     </div>
@@ -47,7 +48,7 @@
         function confirmDelete(id) {
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: "¡No podrás deshacer esta acción!",
+                text: "Esta acción no se puede deshacer.",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
@@ -60,5 +61,26 @@
                 }
             });
         }
+
+        function confirmSync() {
+            Swal.fire({
+                title: '¿Sincronizar usuarios?',
+                text: "Esta acción actualizará la lista de usuarios desde la fuente de datos.",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, sincronizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('sync-form').submit();
+                }
+            });
+        }
     </script>
+
+    <form id="sync-form" action="{{ route('users.sync') }}" method="POST" style="display: none;">
+        @csrf
+    </form>
 @endsection

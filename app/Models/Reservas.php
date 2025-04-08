@@ -11,7 +11,7 @@ class Reservas extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $with = ['sala', 'usuario_creador_reserva','participantes_reservas'];
+    protected $with = ['sala', 'usuario_creador_reserva','participantes_reservas','reserva_horarios'];
     protected $primaryKey = 'id';
 
     protected $fillable = [
@@ -26,6 +26,10 @@ class Reservas extends Model
     public function usuario_creador_reserva()
     {
         return $this->hasOne(User::class, 'id', 'fk_idUsuario')->activos();
+    }
+    public function reserva_horarios()
+    {
+        return $this->hasMany(HorariosReservas::class, 'fk_idReserva', 'id');
     }
 
     public function sala()

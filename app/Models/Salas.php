@@ -19,7 +19,10 @@ class Salas extends Model {
         'horario_inicio',
         'horario_fin'
     ];
-
+    public function scopeActivas($query)
+    {
+        return $query->where('status', 'Habilitada');
+    }
     function reservas()
     {
         return $this->hasMany(Reservas::class, 'fk_idSala', 'id');

@@ -9,11 +9,28 @@ use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 
-class SalasController extends Controller {
+class SalasController extends Controller
+{
     /**
      * Display a listing of the resource.
      */
-    public function index() {
+    public function listarTodas()
+    {
+        try {
+            $salas = Salas::select('id','nombre', 'ubicacion', 'capacidad', 'status', 'horario_inicio', 'horario_fin')
+                ->activas()
+                ->without('reservas')
+                ->orderBy('ubicacion', 'asc')
+                ->get();
+            return $salas;
+        } catch (\Exception $e) {
+            Log::error('Error al obtener las salas en el controlador SalasController@listarTodas: ' . $e->getMessage().',en la linea:'.$e->getLine());
+            return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar las salas.']);
+        }
+    }
+
+    public function index()
+    {
         try {
             $salas = Salas::orderBy('id', 'desc')->get();
             return view('salas.index', ['salas' => $salas]);
@@ -26,7 +43,8 @@ class SalasController extends Controller {
     /**
      * Show the form for creating a new resource.
      */
-    public function create() {
+    public function create()
+    {
         try {
             return view('salas.create');
         } catch (\Exception $e) {
@@ -38,7 +56,8 @@ class SalasController extends Controller {
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse {
+    public function store(Request $request): RedirectResponse
+    {
         $request->validate([
             'nombre' => ['required', Rule::unique('salas')->whereNull('deleted_at')],
             'ubicacion' => 'required',
@@ -60,7 +79,8 @@ class SalasController extends Controller {
     /**
      * Display the specified resource.
      */
-    public function show($id) {
+    public function show($id)
+    {
         try {
             $sala = Salas::findOrFail($id);
             return view('salas.edit')->with(['sala' => $sala]);
@@ -76,7 +96,8 @@ class SalasController extends Controller {
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         $validatedData = $request->validate([
             'ubicacion' => 'required',
             'capacidad' => 'required|integer|min:1',
@@ -101,7 +122,8 @@ class SalasController extends Controller {
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {
+    public function destroy($id)
+    {
         try {
             $sala = Salas::findOrFail($id);
             $sala->delete();

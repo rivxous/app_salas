@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('titulo');
             $table->string('descripcion')->nullable;
             $table->string('tipoEvento');
-            $table->dateTime('horario');
+//            $table->dateTime('horario');
+//            $table->dateTime('horario_fin');
             $table->integer('fk_idSala');
             $table->integer('fk_idUsuario')->comment('relacion de usuario creador de la reserva');
             $table->softDeletes();
