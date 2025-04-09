@@ -44,6 +44,7 @@
             background-color: #f8f9fa;
             color: #000;
         }
+
     </style>
 </head>
 <body class="theme-global">

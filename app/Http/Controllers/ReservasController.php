@@ -124,7 +124,7 @@ class ReservasController extends Controller
                 // Generar horarios disponibles (asumimos que retorna un array de Carbon o datetime)
                 $horariosDisponibles = $this->generarHorariosDisponibles($horariosOcupados);
 
-                // 🔥 Formatear los horarios disponibles
+                // Formatear los horarios disponibles
                 $sala->horarios_disponibles = collect($horariosDisponibles)->map(function ($horario) {
                     return Carbon::parse($horario)->format('d-m-Y h:i a'); // formato para inputs datetime-local
                 })->toArray();
@@ -224,105 +224,144 @@ class ReservasController extends Controller
             Log::error('Error al crear la reserva: ' . $e->getMessage());
             return redirect()->back()->withErrors(['error' => 'Hubo un problema al crear la reserva.']);
         }
-    }
-
-    public function show($id)
-    {
-        try {
-            $reserva = Reservas::findOrFail($id);
-            $salas = Salas::without('reservas')->get();
-            $usuarios = User::pluck('nombre', 'id');
-
-
-            return view('reservas.edit', compact('reserva', 'salas', 'usuarios'));
-        } catch (ModelNotFoundException $e) {
-            Log::error('Reserva no encontrada: ' . $e->getMessage());
-            return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
-        } catch (\Exception $e) {
-            Log::error('Error al obtener la reserva: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar la reserva.']);
-        }
-    }
-
-    public function update(Request $request, $id)
-    {
-//        return $request->all();
         $request->validate([
-            'titulo' => 'required',
-            'descripcion' => 'required|string',
-            'tipoEvento' => 'required',
-            'horarios' => 'required|array|min:1', // Debe ser un array con al menos un elemento
-            'horarios.*' => 'required|date_format:Y-m-d\TH:i', // Cada horario debe ser una fecha válida
-            'fk_idSala' => 'required|exists:salas,id',
-            'participantes' => 'required|array|min:1',
-            'participantes.*' => 'exists:users,id',
-        ], [
-            'horarios.required' => 'Debe seleccionar al menos un horario.',
-            'horarios.array' => 'Los horarios deben ser una lista.',
-            'horarios.min' => 'Debe agregar al menos un horario.',
-            'horarios.*.required' => 'Cada horario es obligatorio.',
-            'horarios.*.date_format' => 'El formato de fecha y hora no es válido.',
+            'tipoEvento' => 'required|in:Reunión,charla,curso',
+            'fechas' => 'required|array|min:1',
+            'fechas.*' => 'required|date',
+            'horas_inicio' => 'required|array|min:1',
+            'horas_inicio.*' => 'required|date_format:H:i',
+            'horas_fin' => 'required|array|min:1',
+            'horas_fin.*' => 'required|date_format:H:i',
         ]);
 
-        try {
-            // Buscar la reserva
-            $reserva = Reservas::findOrFail($id);
+        $tipoEvento = $request->input('tipoEvento');
+        $fechas = $request->input('fechas');
+        $horasInicio = $request->input('horas_inicio');
+        $horasFin = $request->input('horas_fin');
 
-            // Actualizar los datos de la reserva
-            $reserva->fill($request->only(['titulo', 'descripcion', 'tipoEvento', 'fk_idSala']));
-            $reserva->save();
+        if (in_array($tipoEvento, ['Reunión', 'charla']) && count($fechas) > 1) {
+            return back()->withErrors(['fechas' => 'Solo se puede seleccionar una fecha para reuniones o charlas.'])->withInput();
+        }
 
-            // Actualizar participantes
-            if ($request->has('participantes')) {
-                // Eliminar participantes actuales
-                $reserva->participantes_reservas()->delete();
-
-                // Insertar nuevos participantes
-                $participantes = collect($request->participantes)->map(fn($usuarioId) => new Participantes([
-                    'fk_idReserva' => $reserva->id,
-                    'fk_idUsuario' => $usuarioId,
-                ]));
-
-                $reserva->participantes_reservas()->saveMany($participantes);
-            }
-            // Actualizar horarios
-            if ($request->has('horarios')) {
-                // Eliminar participantes actuales
-                $reserva->reserva_horarios()->delete();
-
-                // Insertar nuevos participantes
-                $horarios = collect($request->horarios)->map(fn($horarios) => new HorariosReservas([
-                    'horario' => $horarios,
-                    'fk_idReserva' => $reserva->id,
-                ]));
-
-                $reserva->reserva_horarios()->saveMany($horarios);
+        foreach ($fechas as $i => $fecha) {
+            // Validación adicional por si la hora de inicio es mayor o igual a la de fin
+            if (strtotime($horasInicio[$i]) >= strtotime($horasFin[$i])) {
+                return back()->withErrors(["horas_fin.$i" => "La hora de fin debe ser mayor a la hora de inicio en la fecha $fecha."])->withInput();
             }
 
-            return redirect()->route('reservas.index')->with('success', 'Reserva actualizada correctamente.');
-        } catch (ModelNotFoundException $e) {
-            Log::error('Reserva no encontrada: ' . $e->getMessage());
-            return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
-        } catch (\Exception $e) {
-            Log::error('Error al actualizar la reserva: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Hubo un problema al actualizar la reserva.']);
+            Reserva::create([
+                'tipo_evento' => $tipoEvento,
+                'fecha' => $fecha,
+                'hora_inicio' => $horasInicio[$i],
+                'hora_fin' => $horasFin[$i],
+                // otros campos si los hay
+            ]);
         }
+
+        return redirect()->route('reservas.index')->with('success', 'Reserva(s) creada(s) correctamente.');
+
     }
 
+    public
+function show($id)
+{
+    try {
+        $reserva = Reservas::findOrFail($id);
+        $salas = Salas::without('reservas')->get();
+        $usuarios = User::pluck('nombre', 'id');
 
-    public function destroy($id)
-    {
-        try {
-            $reserva = Reservas::findOrFail($id);
-            $reserva->delete();
 
-            return redirect()->route('reservas.index')->with('success', 'Reserva eliminada correctamente.');
-        } catch (ModelNotFoundException $e) {
-            Log::error('Reserva no encontrada: ' . $e->getMessage());
-            return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
-        } catch (\Exception $e) {
-            Log::error('Error al eliminar la reserva: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'Hubo un problema al eliminar la reserva.']);
-        }
+        return view('reservas.edit', compact('reserva', 'salas', 'usuarios'));
+    } catch (ModelNotFoundException $e) {
+        Log::error('Reserva no encontrada: ' . $e->getMessage());
+        return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
+    } catch (\Exception $e) {
+        Log::error('Error al obtener la reserva: ' . $e->getMessage());
+        return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar la reserva.']);
     }
+}
+
+public
+function update(Request $request, $id)
+{
+//        return $request->all();
+    $request->validate([
+        'titulo' => 'required',
+        'descripcion' => 'required|string',
+        'tipoEvento' => 'required',
+        'horarios' => 'required|array|min:1', // Debe ser un array con al menos un elemento
+        'horarios.*' => 'required|date_format:Y-m-d\TH:i', // Cada horario debe ser una fecha válida
+        'fk_idSala' => 'required|exists:salas,id',
+        'participantes' => 'required|array|min:1',
+        'participantes.*' => 'exists:users,id',
+    ], [
+        'horarios.required' => 'Debe seleccionar al menos un horario.',
+        'horarios.array' => 'Los horarios deben ser una lista.',
+        'horarios.min' => 'Debe agregar al menos un horario.',
+        'horarios.*.required' => 'Cada horario es obligatorio.',
+        'horarios.*.date_format' => 'El formato de fecha y hora no es válido.',
+    ]);
+
+    try {
+        // Buscar la reserva
+        $reserva = Reservas::findOrFail($id);
+
+        // Actualizar los datos de la reserva
+        $reserva->fill($request->only(['titulo', 'descripcion', 'tipoEvento', 'fk_idSala']));
+        $reserva->save();
+
+        // Actualizar participantes
+        if ($request->has('participantes')) {
+            // Eliminar participantes actuales
+            $reserva->participantes_reservas()->delete();
+
+            // Insertar nuevos participantes
+            $participantes = collect($request->participantes)->map(fn($usuarioId) => new Participantes([
+                'fk_idReserva' => $reserva->id,
+                'fk_idUsuario' => $usuarioId,
+            ]));
+
+            $reserva->participantes_reservas()->saveMany($participantes);
+        }
+        // Actualizar horarios
+        if ($request->has('horarios')) {
+            // Eliminar participantes actuales
+            $reserva->reserva_horarios()->delete();
+
+            // Insertar nuevos participantes
+            $horarios = collect($request->horarios)->map(fn($horarios) => new HorariosReservas([
+                'horario' => $horarios,
+                'fk_idReserva' => $reserva->id,
+            ]));
+
+            $reserva->reserva_horarios()->saveMany($horarios);
+        }
+
+        return redirect()->route('reservas.index')->with('success', 'Reserva actualizada correctamente.');
+    } catch (ModelNotFoundException $e) {
+        Log::error('Reserva no encontrada: ' . $e->getMessage());
+        return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
+    } catch (\Exception $e) {
+        Log::error('Error al actualizar la reserva: ' . $e->getMessage());
+        return redirect()->back()->withErrors(['error' => 'Hubo un problema al actualizar la reserva.']);
+    }
+}
+
+
+public
+function destroy($id)
+{
+    try {
+        $reserva = Reservas::findOrFail($id);
+        $reserva->delete();
+
+        return redirect()->route('reservas.index')->with('success', 'Reserva eliminada correctamente.');
+    } catch (ModelNotFoundException $e) {
+        Log::error('Reserva no encontrada: ' . $e->getMessage());
+        return redirect()->route('reservas.index')->withErrors(['error' => 'No se encontró la reserva.']);
+    } catch (\Exception $e) {
+        Log::error('Error al eliminar la reserva: ' . $e->getMessage());
+        return redirect()->back()->withErrors(['error' => 'Hubo un problema al eliminar la reserva.']);
+    }
+}
 }

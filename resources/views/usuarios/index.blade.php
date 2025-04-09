@@ -6,6 +6,9 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="text-primary">Listado de Usuarios</h2>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ route('/') }}" class="btn btn-success shadow-sm">Regresar al inicio</a>
             <button class="btn btn-info shadow-sm" onclick="confirmSync()">Sincronizar Usuarios</button>
         </div>
 

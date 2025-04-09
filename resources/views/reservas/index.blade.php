@@ -6,6 +6,9 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="text-primary">Listado de reservas QQGAS</h2>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ route('/') }}" class="btn btn-success shadow-sm">Regresar al inicio</a>
             <a href="{{ route('reservas.create') }}" class="btn btn-success shadow-sm">Crear reserva</a>
         </div>
 
@@ -61,26 +64,26 @@
             </table>
         </div>
     </div>
-    <div class="container">
-        <h2>Calendario de Reservas</h2>
+{{--    <div class="container">--}}
+{{--        <h2>Calendario de Reservas</h2>--}}
 
-        <div id="calendar"></div>
+{{--        <div id="calendar"></div>--}}
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                var calendarEl = document.getElementById('calendar');
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',  // Vista inicial
-                    events: '{{route('listar_reservas_calendario')}}',  // URL para obtener eventos
-                    eventClick: function(info) {
-                        alert('Evento: ' + info.event.title);
-                        // Aquí podrías integrar la lógica de validación o redireccionamiento para hacer una reserva
-                    }
-                });
-                calendar.render();
-            });
-        </script>
-    </div>
+{{--        <script>--}}
+{{--            document.addEventListener('DOMContentLoaded', function () {--}}
+{{--                var calendarEl = document.getElementById('calendar');--}}
+{{--                var calendar = new FullCalendar.Calendar(calendarEl, {--}}
+{{--                    initialView: 'dayGridMonth',  // Vista inicial--}}
+{{--                    events: '{{route('listar_reservas_calendario')}}',  // URL para obtener eventos--}}
+{{--                    eventClick: function(info) {--}}
+{{--                        alert('Evento: ' + info.event.title);--}}
+{{--                        // Aquí podrías integrar la lógica de validación o redireccionamiento para hacer una reserva--}}
+{{--                    }--}}
+{{--                });--}}
+{{--                calendar.render();--}}
+{{--            });--}}
+{{--        </script>--}}
+{{--    </div>--}}
 
     <script>
         function confirmDelete(id) {

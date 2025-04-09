@@ -40,7 +40,6 @@ Route::get('user/nuevo', [UserController::class, 'create']);
 Route::post('user/nuevo', [UserController::class, 'store'])->name('guardar_usuario');
 Route::get('/users/sync', [UserController::class, 'sync'])->name('users.sync'); //sincronizar usuarios
 
-
 Route::prefix('/auth')->middleware('auth')->group(function () {
 
     Route::resource('salas', SalasController::class);
@@ -48,6 +47,8 @@ Route::prefix('/auth')->middleware('auth')->group(function () {
     Route::post('buscar-salas-horios-disponibles', [ReservasController::class,'buscar_salas_horios_disponibles']);
     Route::resource('reservas', ReservasController::class);
     Route::get('listar_reservas_calendario',[ReservasController::class,'listar_reservas_calendario'])->name('listar_reservas_calendario');
+
+   Route::resource('reportes', ReportesController::class);
 
     // WEB
     Route::prefix('/usuarios')->group(function () {

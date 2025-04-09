@@ -1,7 +1,7 @@
 @extends('layouts.base')
 @section('title','Creación de Salas')
 @section('content')
-<div class="row">
+<div class="row border rounded p-3 mb-3">
     <div class="col-12">
         <div>
             <h2>Crear Sala</h2>
@@ -88,12 +88,13 @@
             }
         </script>
 
-        <!-- Botones -->
-        <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
-            {!! Form::submit('Crear', ['class' => 'btn btn-primary']) !!}
-            <a href="{{ route('salas.index') }}" class="btn btn-secondary">Volver</a>
-        </div>
+
     </div>
     {!! Form::close() !!}
+</div>
+<!-- Botones -->
+<div class="col-xs-12 col-sm-12 col-md-12 mt-2">
+    {!! Form::submit('Crear', ['class' => 'btn btn-primary']) !!}
+    <a href="{{ route('salas.index') }}" class="btn btn-secondary">Volver</a>
 </div>
 @endsection
