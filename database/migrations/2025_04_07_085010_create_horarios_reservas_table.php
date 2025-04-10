@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('horariosReservas', function (Blueprint $table) {
             $table->id();
 
-            $table->dateTime('horario');
+            $table->dateTime('fecha');
+            $table->time('hora_inicio');
+            $table->time('hora_fin');
             $table->integer('fk_idReserva');
 
             $table->softDeletes();

@@ -10,12 +10,15 @@ class HorariosReservas extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    protected $table = 'horariosreservas';
     protected $fillable = [
-        'horario',
+        'fecha',
+        'hora_inicio',
+        'hora_fin',
         'fk_idReserva',
     ];
     protected $casts = [
-        'horario' => 'datetime',
+        'fecha' => 'datetime',
     ];
     public function reserva()
     {
