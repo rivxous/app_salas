@@ -31,7 +31,6 @@ Route::get('p3', [ReservasController::class, function () {
     return response()->json($salas);
 
 }]);
-Route::get('/', [InicioController::class, 'inicio'])->name('/');
 
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login'])->name('login.post');
@@ -40,6 +39,7 @@ Route::get('user/nuevo', [UserController::class, 'create']);
 Route::post('user/nuevo', [UserController::class, 'store'])->name('guardar_usuario');
 Route::get('/users/sync', [UserController::class, 'sync'])->name('users.sync'); //sincronizar usuarios
 
+Route::get('/', [InicioController::class, 'inicio'])->name('/')->middleware('auth');
 Route::prefix('/auth')->middleware('auth')->group(function () {
 
     Route::resource('salas', SalasController::class);
