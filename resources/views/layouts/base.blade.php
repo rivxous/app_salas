@@ -74,6 +74,12 @@
         .card-header {
             border-bottom-color: var(--border-color);
         }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 
     <!-- Librerías JS -->
@@ -93,22 +99,32 @@
 
 <!-- Barra superior con botones -->
 <div class="container-fluid">
-    <div class="d-flex justify-content-between mt-3 me-3">
-        <!-- Botón para cambiar tema -->
-        <button id="toggle-theme" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-moon-fill"></i> Tema Oscuro
-        </button>
-        <!-- Botón inicio -->
-        <a class="btn btn-sm btn-outline-secondary" href="{{route("/")}}">
-            <i class="bi bi-house-check"></i> Home
-        </a>
+    <div class="d-flex justify-content-between align-items-center mt-3 px-3">
+        <div>
+            <!-- Botón Inicio -->
+            <a href="{{ url('/') }}" class="btn btn-sm btn-outline-primary me-2">
+                <i class="bi bi-house-door"></i> Inicio
+            </a>
 
-        <!-- Botón de Cerrar Sesión -->
-        @auth()
-            <div>{{Auth::user()->full_name}}</div>
-            <button id="logout-button" class="btn btn-sm btn-danger">
-                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+            <!-- Botón para cambiar tema -->
+            <button id="toggle-theme" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-moon-fill"></i> Tema Oscuro
             </button>
+        </div>
+
+        @auth()
+            <div class="user-info">
+                <!-- Nombre del usuario -->
+                <span class="text-muted">
+                <i class="bi bi-person-circle"></i>
+                {{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
+            </span>
+
+                <!-- Botón de Cerrar Sesión -->
+                <button id="logout-button" class="btn btn-sm btn-danger ms-3">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                </button>
+            </div>
         @endauth
     </div>
 </div>
@@ -117,9 +133,6 @@
 <div class="container py-4">
     @yield('content')
 </div>
-
-
-
 
 <!-- Scripts globales -->
 <script>
@@ -171,7 +184,6 @@
             }
         });
     });
-
 </script>
 
 @yield('scripts')
