@@ -10,19 +10,24 @@ class HorariosReservas extends Model
 {
     use HasFactory;
     use SoftDeletes;
-    protected $table = 'horariosreservas';
+    protected $table = 'horarios_reservas';
     protected $fillable = [
         'fecha',
         'hora_inicio',
         'hora_fin',
         'fk_idReserva',
+        'fk_idSala',
     ];
     protected $casts = [
         'fecha' => 'datetime',
     ];
     public function reserva()
     {
-        return $this->hasOne(Reservas::class, 'id', 'fk_idReserva');
+        return $this->belongsTo(Reservas::class, 'fk_idReserva')->without('reserva_horarios');
+    }
+    public function sala()
+    {
+        return $this->belongsTo(Reservas::class, 'fk_idReserva');
     }
 
 }

@@ -1,100 +1,187 @@
 @extends('layouts.base')
-@section('title','Creación de Salas')
+
+@section('title', 'Creación de Salas')
+
 @section('content')
-<div class="row border rounded p-3 mb-3">
-    <div class="col-12">
-        <div>
-            <h2>Crear Sala</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h5 mb-0">Crear Nueva Sala</h2>
+                </div>
+
+                <div class="card-body">
+                    {!! Form::open(['route' => 'salas.store', 'method' => 'POST', 'class' => 'needs-validation', 'novalidate' => true]) !!}
+
+                    <!-- Campo Nombre -->
+                    <div class="mb-3">
+                        {!! Form::label('nombre', 'Nombre de la Sala', ['class' => 'form-label fw-bold']) !!}
+                        {!! Form::text('nombre', old('nombre'), [
+                            'class' => 'form-control' . ($errors->has('nombre') ? ' is-invalid' : ''),
+                            'placeholder' => 'Ej: Sala de Conferencias A',
+                            'required' => true,
+                            'aria-describedby' => 'nombreHelp nombreError'
+                        ]) !!}
+                        <div id="nombreHelp" class="form-text">Ingrese un nombre descriptivo para la sala.</div>
+                        @error('nombre')
+                        <div id="nombreError" class="invalid-feedback">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+
+                    <!-- Campo Ubicación -->
+                    <div class="mb-3">
+                        {!! Form::label('ubicacion', 'Ubicación', ['class' => 'form-label fw-bold']) !!}
+                        {!! Form::select('ubicacion', [
+                            '' => '-- Seleccione una ubicación --',
+                            'CCP' => '(CCP) Centro Comercial Petro Petroriente',
+                            'QE2' => '(QE2) Quiriquire',
+                            'ALMACEN' => '(Almacén)'
+                        ], old('ubicacion'), [
+                            'class' => 'form-select' . ($errors->has('ubicacion') ? ' is-invalid' : ''),
+                            'required' => true,
+                            'aria-describedby' => 'ubicacionError'
+                        ]) !!}
+                        @error('ubicacion')
+                        <div id="ubicacionError" class="invalid-feedback">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+
+                    <!-- Campo Capacidad -->
+                    <div class="mb-3">
+                        {!! Form::label('capacidad', 'Capacidad Máxima', ['class' => 'form-label fw-bold']) !!}
+                        <div class="input-group">
+                            {!! Form::number('capacidad', old('capacidad'), [
+                                'class' => 'form-control' . ($errors->has('capacidad') ? ' is-invalid' : ''),
+                                'placeholder' => 'Ej: 20',
+                                'min' => 1,
+                                'required' => true,
+                                'aria-describedby' => 'capacidadHelp capacidadError'
+                            ]) !!}
+                            <span class="input-group-text">personas</span>
+                        </div>
+                        <div id="capacidadHelp" class="form-text">Número máximo de ocupantes permitidos.</div>
+                        @error('capacidad')
+                        <div id="capacidadError" class="invalid-feedback">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+
+                    <!-- Campo Status -->
+                    <div class="mb-3">
+                        {!! Form::label('status', 'Estado', ['class' => 'form-label fw-bold']) !!}
+                        {!! Form::select('status', [
+                            '' => '-- Seleccione un estado --',
+                            'Habilitada' => 'Habilitada',
+                            'Inhabilitada' => 'Inhabilitada',
+                            'Mantenimiento' => 'En Mantenimiento'
+                        ], old('status'), [
+                            'class' => 'form-select' . ($errors->has('status') ? ' is-invalid' : ''),
+                            'required' => true,
+                            'aria-describedby' => 'statusError'
+                        ]) !!}
+                        @error('status')
+                        <div id="statusError" class="invalid-feedback">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </div>
+                        @enderror
+                    </div>
+
+                    <!-- Campos de Horario -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {!! Form::label('horario_inicio', 'Hora de Inicio', ['class' => 'form-label fw-bold']) !!}
+                            {!! Form::time('horario_inicio', old('horario_inicio'), [
+                                'class' => 'form-control' . ($errors->has('horario_inicio') ? ' is-invalid' : ''),
+                                'required' => true,
+                                'id' => 'horario_inicio',
+                                'aria-describedby' => 'horarioInicioError'
+                            ]) !!}
+                            @error('horario_inicio')
+                            <div id="horarioInicioError" class="invalid-feedback">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-6">
+                            {!! Form::label('horario_fin', 'Hora de Finalización', ['class' => 'form-label fw-bold']) !!}
+                            {!! Form::time('horario_fin', old('horario_fin'), [
+                                'class' => 'form-control' . ($errors->has('horario_fin') ? ' is-invalid' : ''),
+                                'required' => true,
+                                'id' => 'horario_fin',
+                                'aria-describedby' => 'horarioFinError horarioValidation',
+                                'onchange' => 'validarHorario()'
+                            ]) !!}
+                            <div id="horarioValidation" class="text-danger small d-none">
+                                <i class="bi bi-exclamation-circle"></i> La hora final debe ser posterior a la hora de inicio.
+                            </div>
+                            @error('horario_fin')
+                            <div id="horarioFinError" class="invalid-feedback">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ route('salas.index') }}" class="btn btn-outline-secondary me-md-2">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        {!! Form::button('<i class="bi bi-check-circle"></i> Guardar Sala', [
+                            'type' => 'submit',
+                            'class' => 'btn btn-primary'
+                        ]) !!}
+                    </div>
+
+                    {!! Form::close() !!}
+                </div>
+            </div>
         </div>
     </div>
+@endsection
 
-    {!! Form::open(['route' => 'salas.store', 'method' => 'POST']) !!}
-    <div class="row">
-        <!-- Campo Nombre -->
-        <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
-            <div class="form-group">
-                {!! Form::label('nombre', 'Nombre:', ['for' => 'nombre']) !!}
-                {!! Form::text('nombre', old('nombre'), ['id' => 'nombre', 'class' => 'form-control', 'placeholder' => 'Nombre de la sala']) !!}
-                @error('nombre')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-        </div>
+@section('scripts')
+    <script>
+        function validarHorario() {
+            const inicio = document.getElementById('horario_inicio').value;
+            const fin = document.getElementById('horario_fin').value;
+            const mensajeError = document.getElementById('horarioValidation');
 
-        <!-- Campo Ubicación -->
-        <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
-            <div class="form-group">
-                {!! Form::label('ubicacion', 'Ubicación:', ['for' => 'ubicacion']) !!}
-                {!! Form::select('ubicacion', ['' => '-- Elige una ubicación --', 'CCP' => 'CCP', 'QE2' => 'QE2', 'ALMACEN' => 'ALMACEN'], old('ubicacion'), ['id' => 'ubicacion', 'class' => 'form-select']) !!} @error('ubicacion')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-        </div>
-
-        <!-- Campo Capacidad -->
-        <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
-            <div class="form-group">
-                {!! Form::label('capacidad', 'Capacidad:', ['for' => 'capacidad']) !!}
-                {!! Form::number('capacidad', old('capacidad'), ['id' => 'capacidad', 'class' => 'form-control', 'min' => '1', 'placeholder' => 'Capacidad de personas']) !!}
-                @error('capacidad')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-        </div>
-
-        <!-- Campo Status -->
-        <div class="col-xs-12 col-sm-12 col-md-12 mt-2">
-            <div class="form-group">
-                {!! Form::label('status', 'Status:', ['for' => 'status']) !!}
-                {!! Form::select('status', ['' => '-- Elige el status --', 'Habilitada' => 'Habilitada', 'Inhabilitada' => 'Inhabilitada'], old('status'), ['id' => 'status', 'class' => 'form-select']) !!}
-                @error('status')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-        </div>
-
-        <!-- Campo Hora de reserva -->
-        <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
-            <div class="form-group">
-                {!! Form::label('horario_inicio', 'Hora de inicio:', ['for' => 'horario_inicio']) !!}
-                {!! Form::time('horario_inicio', old('horario_inicio'), ['id' => 'horario_inicio', 'class' => 'form-control']) !!}
-                @error('horario_inicio')
-                <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-        </div>
-        <div class="col-xs-12 col-sm-12 col-md-6 mt-2">
-            <div class="form-group">
-                {!! Form::label('horario_fin', 'Hora fin:', ['for' => 'horario_fin']) !!}
-                {!! Form::time('horario_fin', old('horario_fin'), ['id' => 'horario_fin', 'class' => 'form-control', 'onchange' => 'validarHorario()']) !!}
-                @error('horario_fin')
-                <small class="text-danger">{{ $message }}</small>
-                @enderror
-                <small id="error-horario" class="text-danger" style="display: none;">La hora de fin debe ser posterior a la hora de inicio.</small>
-            </div>
-        </div>
-
-        <script>
-            function validarHorario() {
-                let inicio = document.getElementById('horario_inicio').value;
-                let fin = document.getElementById('horario_fin').value;
-                let errorMensaje = document.getElementById('error-horario');
-
-                if (inicio && fin && inicio >= fin) {
-                    errorMensaje.style.display = 'block';
-                } else {
-                    errorMensaje.style.display = 'none';
-                }
+            if (inicio && fin && inicio >= fin) {
+                mensajeError.classList.remove('d-none');
+                document.getElementById('horario_fin').classList.add('is-invalid');
+            } else {
+                mensajeError.classList.add('d-none');
+                document.getElementById('horario_fin').classList.remove('is-invalid');
             }
-        </script>
+        }
 
+        // Validación para ambos campos de horario
+        document.getElementById('horario_inicio').addEventListener('change', validarHorario);
+        document.getElementById('horario_fin').addEventListener('change', validarHorario);
 
-    </div>
-    {!! Form::close() !!}
-</div>
-<!-- Botones -->
-<div class="col-xs-12 col-sm-12 col-md-12 mt-2">
-    {!! Form::submit('Crear', ['class' => 'btn btn-primary']) !!}
-    <a href="{{ route('salas.index') }}" class="btn btn-secondary">Volver</a>
-</div>
+        // Validación de Bootstrap
+        (function() {
+            'use strict'
+
+            const forms = document.querySelectorAll('.needs-validation')
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
 @endsection

@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('horariosReservas', function (Blueprint $table) {
+        Schema::create('horarios_reservas', function (Blueprint $table) {
             $table->id();
 
             $table->dateTime('fecha');
             $table->time('hora_inicio');
             $table->time('hora_fin');
-            $table->integer('fk_idReserva');
+            $table->foreignId('fk_idReserva')->index();
+            $table->foreignId('fk_idSala')->index();
 
             $table->softDeletes();
             $table->timestamps();
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('horariosReservas');
+        Schema::dropIfExists('horarios_reservas');
     }
 };

@@ -39,6 +39,10 @@ class User extends Authenticatable
     {
         return $query->where('estatus', 1);
     }
+    public function getFullNameAttribute($query)
+    {
+        return strtoupper("$this->apellido, $this->nombre");
+    }
     public function scopeInactivos($query)
     {
         return $query->where('estatus', 0);

@@ -20,7 +20,7 @@ use App\Http\Controllers\ReservasController;
 */
 
 
-Route::get('p1', [ReservasController::class, 'prueba']);
+Route::get('p1', [salassController::class, 'prueba']);
 Route::get('p2', [ReservasController::class, function () {
     $reservas = \App\Models\Reservas::get();
     return response()->json($reservas);
@@ -31,6 +31,9 @@ Route::get('p3', [ReservasController::class, function () {
     return response()->json($salas);
 
 }]);
+Route::get('home2',function (){
+    return view('sidebard.index');
+});
 
 Route::get('login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('login', [AuthController::class, 'login'])->name('login.post');

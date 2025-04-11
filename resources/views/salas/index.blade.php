@@ -40,13 +40,14 @@
                 </thead>
                 <tbody>
                 @foreach ($salas as $sala)
+{{--                    {{dd($sala->horario_inicio )}}--}}
                     <tr>
                         <td class="fw-bold text-uppercase">{{ $sala->nombre }}</td>
                         <td>{{ $sala->ubicacion }}</td>
                         <td>{{ $sala->capacidad }}</td>
                         <td><span class="badge bg-warning fs-6">{{ $sala->status }}</span></td>
-                        <td>{{ $sala->horario_inicio }}</td>
-                        <td>{{ $sala->horario_fin }}</td>
+                        <td>{{ $sala->horario_inicio->format('h:i A') }}</td>
+                        <td>{{ $sala->horario_fin->format('h:i A') }}</td>
                         <td>
                             <a href="{{ route('salas.show', ['sala' => $sala->id]) }}" class="btn btn-warning btn-sm">Editar</a>
                             <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $sala->id }})">Eliminar</button>

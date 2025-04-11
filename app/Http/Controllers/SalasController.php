@@ -33,6 +33,7 @@ class SalasController extends Controller
     {
         try {
             $salas = Salas::orderBy('id', 'desc')->get();
+//            dd($salas);
             return view('salas.index', ['salas' => $salas]);
         } catch (\Exception $e) {
             Log::error('Error al obtener las salas: ' . $e->getMessage());

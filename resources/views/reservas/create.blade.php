@@ -1,223 +1,323 @@
 @extends('layouts.base')
+
 @section('title', 'Creación de Reservas')
+
 @section('content')
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="h5 mb-0">Crear Nueva Reserva</h2>
+                    </div>
 
-    <div class="row border rounded p-3 mb-3">
-        <div class="col-12">
-            <h2>Crear Reserva</h2>
+                    <div class="card-body">
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        {!! Form::open(['route' => 'reservas.store', 'method' => 'POST', 'id' => 'reservaForm', 'class' => 'needs-validation', 'novalidate' => true]) !!}
+
+                        <!-- Ubicación -->
+                        <div class="mb-3">
+                            {!! Form::label('ubicacion', 'Ubicación', ['class' => 'form-label fw-bold']) !!}
+                            <select id="ubicacion" name="ubicacion" class="form-select" required>
+                                <option value="">-- Seleccione una ubicación --</option>
+                                @foreach($salas->pluck('ubicacion')->unique() as $ubicacion)
+                                    <option value="{{ $ubicacion }}" {{ old('ubicacion') == $ubicacion ? 'selected' : '' }}>
+                                        {{ $ubicacion }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('ubicacion')
+                            <div class="invalid-feedback d-block">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+
+                        <!-- Sala (oculto inicialmente) -->
+                        <div class="mb-3" id="salaContainer" style="display: none;">
+                            {!! Form::label('fk_idSala', 'Sala', ['class' => 'form-label fw-bold']) !!}
+                            <select id="fk_idSala" name="fk_idSala" class="form-select" required>
+                                <option value="">-- Seleccione una sala --</option>
+                            </select>
+                            @error('fk_idSala')
+                            <div class="invalid-feedback d-block">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </div>
+                            @enderror
+                        </div>
+
+                        <!-- Campos de reserva (ocultos inicialmente) -->
+                        <div id="camposReserva" style="display: none;">
+
+                            <!-- Tipo de evento -->
+                            <div class="mb-3">
+                                {!! Form::label('tipoEvento', 'Tipo de Evento', ['class' => 'form-label fw-bold']) !!}
+                                {!! Form::select('tipoEvento', [
+                                    '' => '-- Seleccione un tipo --',
+                                    'Reunión' => 'Reunión',
+                                    'Charla' => 'Charla',
+                                    'Curso' => 'Curso'
+                                ], null, [
+                                    'class' => 'form-select',
+                                    'id' => 'tipoEvento',
+                                    'required' => true
+                                ]) !!}
+                                @error('tipoEvento')
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+
+                            <!-- Fechas y horarios -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <label class="form-label fw-bold">Fechas y Horarios</label>
+                                    <button type="button" id="agregarFecha" class="btn btn-sm btn-success" style="display: none;">
+                                        <i class="bi bi-plus-circle"></i> Agregar fecha
+                                    </button>
+                                </div>
+
+                                <div id="fechasContainer">
+                                    <div class="row g-3 mb-3 fecha-grupo">
+                                        <div class="col-md-4">
+                                            {!! Form::label('fechas[]', 'Fecha', ['class' => 'form-label']) !!}
+                                            {!! Form::date('fechas[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                        </div>
+                                        <div class="col-md-3">
+                                            {!! Form::label('horas_inicio[]', 'Hora de Inicio', ['class' => 'form-label']) !!}
+                                            {!! Form::time('horas_inicio[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                        </div>
+                                        <div class="col-md-3">
+                                            {!! Form::label('horas_fin[]', 'Hora de Fin', ['class' => 'form-label']) !!}
+                                            {!! Form::time('horas_fin[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-sm btn-danger eliminarFecha" disabled>
+                                                <i class="bi bi-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Título -->
+                            <div class="mb-3">
+                                {!! Form::label('titulo', 'Título', ['class' => 'form-label fw-bold']) !!}
+                                {!! Form::text('titulo', old('titulo'), [
+                                    'class' => 'form-control',
+                                    'placeholder' => 'Título de la reserva',
+                                    'required' => true
+                                ]) !!}
+                                @error('titulo')
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+
+                            <!-- Descripción -->
+                            <div class="mb-3">
+                                {!! Form::label('descripcion', 'Descripción', ['class' => 'form-label fw-bold']) !!}
+                                {!! Form::textarea('descripcion', old('descripcion'), [
+                                    'class' => 'form-control',
+                                    'placeholder' => 'Descripción de la reserva',
+                                    'rows' => 3
+                                ]) !!}
+                                @error('descripcion')
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+
+                            <!-- Participantes -->
+                            <div class="mb-3">
+                                {!! Form::label('participantes', 'Participantes', ['class' => 'form-label fw-bold']) !!}
+                                {!! Form::select('participantes[]', $usuarios, old('participantes'), [
+                                    'id' => 'fk_participantes',
+                                    'class' => 'form-select',
+                                    'multiple' => 'multiple',
+                                    'style' => 'width: 100%'
+                                ]) !!}
+                                @error('participantes')
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="{{ route('reservas.index') }}" class="btn btn-outline-secondary me-2">
+                                <i class="bi bi-arrow-left"></i> Volver
+                            </a>
+                            {!! Form::button('<i class="bi bi-save"></i> Crear Reserva', [
+                                'type' => 'submit',
+                                'class' => 'btn btn-primary'
+                            ]) !!}
+                        </div>
+
+                        {!! Form::close() !!}
+                    </div>
+                </div>
+            </div>
         </div>
-
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        {!! Form::open(['route' => 'reservas.store', 'method' => 'POST', 'id' => 'reservaForm']) !!}
-        <div class="row">
-
-            <!-- Ubicación -->
-            <div class="col-md-12 mt-2">
-                <div class="form-group">
-                    {!! Form::label('ubicacion', 'Ubicación:') !!}
-                    <select id="ubicacion" name="ubicacion" class="form-select">
-                        <option value="">--Seleccione--</option>
-                        @foreach($salas->pluck('ubicacion')->unique() as $ubicacion)
-                            <option value="{{ $ubicacion }}" {{ old('ubicacion') == $ubicacion ? 'selected' : '' }}>
-                                {{ $ubicacion }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('ubicacion') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-            </div>
-
-            <!-- Sala -->
-            <div class="col-md-12 mt-2">
-                <div class="form-group" style="display: none;">
-                    {!! Form::label('fk_idSala', 'Sala:') !!}
-                    <select id="fk_idSala" name="fk_idSala" class="form-select">
-                        <option value="">--Seleccione--</option>
-                    </select>
-                    @error('fk_idSala') <small class="text-danger">{{ $message }}</small> @enderror
-                </div>
-            </div>
-
-            <!-- Datos de reserva -->
-            <div class="campo-reserva" style="{{ $errors->any() ? '' : 'display: none;' }}">
-
-                <!-- Tipo de evento -->
-                <div class="form-group mt-3">
-                    {!! Form::label('tipoEvento', 'Tipo de Evento:') !!}
-                    {!! Form::select('tipoEvento', [null => '--Seleccione--', 'Reunión' => 'Reunión', 'charla' => 'Charla', 'curso' => 'Curso'], null, ['class' => 'form-control', 'id' => 'tipoEvento', 'required']) !!}
-                </div>
-
-                <!-- Fechas y horarios -->
-                <div id="fechasContainer">
-                    <div class="form-row row fecha-grupo">
-                        <div class="col-md-4 mt-2">
-                            {!! Form::label('fechas[]', 'Fecha:') !!}
-                            {!! Form::date('fechas[]', null, ['class' => 'form-control', 'required']) !!}
-                        </div>
-                        <div class="col-md-4 mt-2">
-                            {!! Form::label('horas_inicio[]', 'Hora de Inicio:') !!}
-                            {!! Form::time('horas_inicio[]', null, ['class' => 'form-control', 'required']) !!}
-                        </div>
-                        <div class="col-md-4 mt-2">
-                            {!! Form::label('horas_fin[]', 'Hora de Fin:') !!}
-                            {!! Form::time('horas_fin[]', null, ['class' => 'form-control', 'required']) !!}
-                        </div>
-                        <div class="col-md-1 mt-4 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm eliminarFecha">Eliminar</button>
-                        </div>
-                    </div>
-                </div>
-                <button type="button" id="agregarFecha" class="btn btn-success mt-2">Agregar fecha</button>
-
-                <!-- Título -->
-                <div class="col-md-12 mt-3">
-                    <div class="form-group">
-                        {!! Form::label('titulo', 'Título:') !!}
-                        {!! Form::text('titulo', old('titulo'), ['class' => 'form-control', 'placeholder' => 'Título de la reserva']) !!}
-                        @error('titulo') <small class="text-danger">{{ $message }}</small> @enderror
-                    </div>
-                </div>
-
-                <!-- Descripción -->
-                <div class="col-md-12 mt-3">
-                    <div class="form-group">
-                        {!! Form::label('descripcion', 'Descripción:') !!}
-                        {!! Form::text('descripcion', old('descripcion'), ['class' => 'form-control', 'placeholder' => 'Descripción de la reserva']) !!}
-                        @error('descripcion') <small class="text-danger">{{ $message }}</small> @enderror
-                    </div>
-                </div>
-
-                <!-- Participantes -->
-                <div class="col-md-12 mt-3">
-                    <div class="form-group">
-                        {!! Form::label('participantes', 'Participantes:') !!}
-                        {!! Form::select('participantes[]', $usuarios, old('participantes'), ['id' => 'fk_participantes', 'class' => 'form-select', 'multiple' => 'multiple']) !!}
-                        @error('participantes') <small class="text-danger">{{ $message }}</small> @enderror
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botones -->
-            <div class="col-md-12 mt-3">
-                {!! Form::submit('Crear', ['class' => 'btn btn-primary']) !!}
-                <a href="{{ route('reservas.index') }}" class="btn btn-secondary">Volver</a>
-            </div>
-        </div>
-        {!! Form::close() !!}
     </div>
-
 @endsection
 
-@section('js')
+@section('scripts')
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
+            // Datos de las salas
             const salas = @json($salas);
-            const horariosPorSala = {};
             const salasPorUbicacion = {};
 
             salas.forEach(sala => {
-                horariosPorSala[sala.id] = sala.horarios_disponibles;
                 if (!salasPorUbicacion[sala.ubicacion]) {
                     salasPorUbicacion[sala.ubicacion] = [];
                 }
                 salasPorUbicacion[sala.ubicacion].push(sala);
             });
 
+            // Elementos del DOM
             const $ubicacionSelect = $('#ubicacion');
             const $salaSelect = $('#fk_idSala');
-            const $salaSelectContainer = $salaSelect.closest('.form-group');
-            const $campoReserva = $('.campo-reserva');
+            const $salaContainer = $('#salaContainer');
+            const $camposReserva = $('#camposReserva');
             const $participantesSelect = $('#fk_participantes');
             const $tipoEvento = $('#tipoEvento');
             const $fechasContainer = $('#fechasContainer');
             const $agregarFechaBtn = $('#agregarFecha');
 
-            $campoReserva.hide();
-            $salaSelectContainer.hide();
+            // Inicializar Select2 para participantes
+            $participantesSelect.select2({
+                placeholder: "Seleccione participantes",
+                allowClear: true
+            });
 
-            $ubicacionSelect.on('change', function () {
-                const seleccionada = $(this).val();
-                $salaSelect.empty().append('<option value="">--Seleccione--</option>');
-                $salaSelectContainer.hide();
+            // Cambio de ubicación
+            $ubicacionSelect.on('change', function() {
+                const ubicacionSeleccionada = $(this).val();
+                $salaSelect.empty().append('<option value="">-- Seleccione una sala --</option>');
+                $salaContainer.hide();
+                $camposReserva.hide();
 
-                if (seleccionada && salasPorUbicacion[seleccionada]) {
-                    salasPorUbicacion[seleccionada].forEach(sala => {
+                if (ubicacionSeleccionada && salasPorUbicacion[ubicacionSeleccionada]) {
+                    salasPorUbicacion[ubicacionSeleccionada].forEach(sala => {
                         $salaSelect.append(`<option value="${sala.id}">${sala.nombre}</option>`);
                     });
-                    $salaSelectContainer.show();
-                } else {
-                    $campoReserva.hide();
+                    $salaContainer.show();
                 }
             });
 
-            $salaSelect.on('change', function () {
+            // Cambio de sala
+            $salaSelect.on('change', function() {
                 if ($(this).val()) {
-                    $campoReserva.show();
-                    $participantesSelect.select2({
-                        placeholder: "--Seleccione--",
-                        allowClear: true,
-                        width: "100%"
-                    });
-                    $participantesSelect.next(".select2-container").show();
+                    $camposReserva.show();
                 } else {
-                    $campoReserva.hide();
+                    $camposReserva.hide();
                 }
             });
 
-            $tipoEvento.on('change', function () {
-                if ($(this).val() === 'curso') {
+            // Cambio de tipo de evento
+            $tipoEvento.on('change', function() {
+                if ($(this).val() === 'Curso') {
                     $agregarFechaBtn.show();
                 } else {
                     $agregarFechaBtn.hide();
-                    $fechasContainer.find('.fecha-grupo').slice(1).remove();
+                    // Eliminar todos los grupos de fecha excepto el primero
+                    $fechasContainer.find('.fecha-grupo').not(':first').remove();
+                    // Habilitar el botón eliminar del primer grupo
+                    $fechasContainer.find('.fecha-grupo:first .eliminarFecha').prop('disabled', true);
                 }
             });
 
-            $agregarFechaBtn.on('click', function () {
-                const grupo = $(`
-            <div class="form-row row fecha-grupo mb-3">
-                <div class="col-md-4 mt-2">
-                    <label>Fecha:</label>
+            // Agregar nueva fecha
+            $agregarFechaBtn.on('click', function() {
+                const nuevoGrupo = $(`
+            <div class="row g-3 mb-3 fecha-grupo">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha</label>
                     <input type="date" name="fechas[]" class="form-control" required>
                 </div>
-                <div class="col-md-4 mt-2">
-                    <label>Hora de Inicio:</label>
+                <div class="col-md-3">
+                    <label class="form-label">Hora de Inicio</label>
                     <input type="time" name="horas_inicio[]" class="form-control" required>
                 </div>
-                <div class="col-md-4 mt-2">
-                    <label>Hora de Fin:</label>
+                <div class="col-md-3">
+                    <label class="form-label">Hora de Fin</label>
                     <input type="time" name="horas_fin[]" class="form-control" required>
                 </div>
-                <div class="col-md-1 mt-4 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger btn-sm eliminarFecha">Eliminar</button>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-sm btn-danger eliminarFecha">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </button>
                 </div>
             </div>
-            `);
-                $fechasContainer.append(grupo);
+        `);
+                $fechasContainer.append(nuevoGrupo);
+
+                // Habilitar eliminar en el primer grupo si hay más de uno
+                if ($fechasContainer.find('.fecha-grupo').length > 1) {
+                    $fechasContainer.find('.fecha-grupo:first .eliminarFecha').prop('disabled', false);
+                }
             });
 
-            $(document).on('click', '.eliminarFecha', function () {
+            // Eliminar fecha
+            $(document).on('click', '.eliminarFecha', function() {
                 $(this).closest('.fecha-grupo').remove();
+
+                // Si solo queda un grupo, deshabilitar su botón eliminar
+                if ($fechasContainer.find('.fecha-grupo').length === 1) {
+                    $fechasContainer.find('.fecha-grupo:first .eliminarFecha').prop('disabled', true);
+                }
             });
 
-            $(document).on('change', 'input[name="horas_fin[]"]', function () {
+            // Validación de horas
+            $(document).on('change', 'input[name="horas_fin[]"]', function() {
                 const $grupo = $(this).closest('.fecha-grupo');
                 const inicio = $grupo.find('input[name="horas_inicio[]"]').val();
                 const fin = $(this).val();
+
                 if (inicio && fin && fin <= inicio) {
-                    alert("La hora de fin debe ser mayor que la hora de inicio.");
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'La hora de fin debe ser posterior a la hora de inicio',
+                        icon: 'error',
+                        confirmButtonText: 'Entendido'
+                    });
                     $(this).val('');
                 }
             });
+
+            // Validación de Bootstrap
+            (function() {
+                'use strict'
+
+                const forms = document.querySelectorAll('.needs-validation')
+
+                Array.from(forms).forEach(form => {
+                    form.addEventListener('submit', event => {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+            })()
         });
     </script>
 @endsection

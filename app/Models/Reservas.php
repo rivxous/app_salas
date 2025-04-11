@@ -41,4 +41,18 @@ class Reservas extends Model
     {
         return $this->hasMany(Participantes::class, 'fk_idReserva', 'id');
     }
+    public function tieneConflicto(string $fecha, string $horaInicio, string $horaFin): bool
+    {
+        return $this->reserva_horarios()
+            ->where('fecha', $fecha)
+            ->where(function($query) use ($horaInicio, $horaFin) {
+                $query->whereBetween('hora_inicio', [$horaInicio, $horaFin])
+                    ->orWhereBetween('hora_fin', [$horaInicio, $horaFin])
+                    ->orWhere(function($q) use ($horaInicio, $horaFin) {
+                        $q->where('hora_inicio', '<=', $horaInicio)
+                            ->where('hora_fin', '>=', $horaFin);
+                    });
+            })
+            ->exists();
+    }
 }
