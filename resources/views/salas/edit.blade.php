@@ -134,6 +134,32 @@
                             </div>
                         </div>
 
+                        <!-- Campo Atributos -->
+                        <div class="mb-3">
+                            {!! Form::label('atributos', 'Atributos Disponibles', ['class' => 'form-label fw-bold']) !!}
+                            <div class="form-check">
+                                {!! Form::checkbox('atributos[]', 'Proyector', in_array('Proyector', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoProyector']) !!}
+                                {!! Form::label('atributoProyector', 'Proyector', ['class' => 'form-check-label']) !!}
+                            </div>
+                            <div class="form-check">
+                                {!! Form::checkbox('atributos[]', 'Monitor', in_array('Monitor', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoMonitor']) !!}
+                                {!! Form::label('atributoMonitor', 'Monitor', ['class' => 'form-check-label']) !!}
+                            </div>
+                            <div class="form-check">
+                                {!! Form::checkbox('atributos[]', 'Aire Acondicionado', in_array('Aire Acondicionado', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoAire']) !!}
+                                {!! Form::label('atributoAire', 'Aire Acondicionado', ['class' => 'form-check-label']) !!}
+                            </div>
+                            <div class="form-check">
+                                {!! Form::checkbox('atributos[]', 'Wifi', in_array('Wifi', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoWifi']) !!}
+                                {!! Form::label('atributoWifi', 'Wifi', ['class' => 'form-check-label']) !!}
+                            </div>
+                            <div class="form-check">
+                                {!! Form::checkbox('atributos[]', 'Video Conferencia', in_array('Video Conferencia', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoVideoConferencia']) !!}
+                                {!! Form::label('atributoVideoConferencia', 'Video Conferencia', ['class' => 'form-check-label']) !!}
+                            </div>
+                        </div>
+
+
                         <!-- Botones de Acción -->
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <a href="{{ route('salas.index') }}" class="btn btn-outline-secondary me-md-2">

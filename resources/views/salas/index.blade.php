@@ -8,7 +8,6 @@
             <h2 class="text-primary">Listado de Salas QQGAS</h2>
         </div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{{ route('/') }}" class="btn btn-success shadow-sm">Regresar al inicio</a>
             <a href="{{ route('salas.create') }}" class="btn btn-success shadow-sm">Crear Sala</a>
         </div>
 
@@ -24,6 +23,19 @@
                 });
             </script>
         @endif
+        @if(Session::get('error'))
+            <script>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Problema encontrado',
+                    text: '{{ Session::get('error') }}',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
+            </script>
+        @endif
+
 
         <div class="table-responsive">
             <table class="table table-hover shadow-sm">
@@ -35,6 +47,7 @@
                     <th>Status</th>
                     <th>Horario Inicio</th>
                     <th>Horario Fin</th>
+                    <th>Atributos</th>
                     <th>Acciones</th>
                 </tr>
                 </thead>
@@ -48,6 +61,16 @@
                         <td><span class="badge bg-warning fs-6">{{ $sala->status }}</span></td>
                         <td>{{ $sala->horario_inicio->format('h:i A') }}</td>
                         <td>{{ $sala->horario_fin->format('h:i A') }}</td>
+                        <td>
+                            @if($sala->atributos)
+                                @foreach(json_decode($sala->atributos) as $atributo)
+                                    <span class="badge bg-info text-dark me-1">{{ $atributo }}</span>
+                                @endforeach
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
+
                         <td>
                             <a href="{{ route('salas.show', ['sala' => $sala->id]) }}" class="btn btn-warning btn-sm">Editar</a>
                             <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $sala->id }})">Eliminar</button>

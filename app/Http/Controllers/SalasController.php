@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Reservas;
 use App\Models\Salas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,14 +18,14 @@ class SalasController extends Controller
     public function listarTodas()
     {
         try {
-            $salas = Salas::select('id','nombre', 'ubicacion', 'capacidad', 'status', 'horario_inicio', 'horario_fin')
+            $salas = Salas::select('id', 'nombre', 'ubicacion', 'capacidad', 'status', 'horario_inicio', 'horario_fin')
                 ->activas()
                 ->without('reservas')
                 ->orderBy('ubicacion', 'asc')
                 ->get();
             return $salas;
         } catch (\Exception $e) {
-            Log::error('Error al obtener las salas en el controlador SalasController@listarTodas: ' . $e->getMessage().',en la linea:'.$e->getLine());
+            Log::error('Error al obtener las salas en el controlador SalasController@listarTodas: ' . $e->getMessage() . ',en la linea:' . $e->getLine());
             return redirect()->back()->withErrors(['error' => 'Hubo un problema al cargar las salas.']);
         }
     }
@@ -59,23 +60,30 @@ class SalasController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+//        dd($request->input('atributos'));
         $request->validate([
             'nombre' => ['required', Rule::unique('salas')->whereNull('deleted_at')],
             'ubicacion' => 'required',
             'capacidad' => 'required|numeric',
             'status' => 'required',
             'horario_inicio' => 'required',
-            'horario_fin' => 'required'
+            'horario_fin' => 'required',
+            'atributos' => 'required',
         ]);
 
         try {
-            Salas::create($request->all());
+//            Salas::create($request->all());
+            $sala = new Salas($request->all());
+            $sala->atributos = json_encode($request->atributos); // Laravel lo convierte automáticamente a JSON
+            $sala->save();
+
             return redirect()->route('salas.index')->with('success', 'Sala creada exitosamente!')->withInput();
         } catch (\Exception $e) {
             Log::error('Error al crear la sala: ' . $e->getMessage());
             return redirect()->back()->withErrors(['error' => 'Hubo un problema al crear la sala.']);
         }
     }
+
 
     /**
      * Display the specified resource.
@@ -105,6 +113,7 @@ class SalasController extends Controller
             'status' => 'required|in:Habilitada,Inhabilitada',
             'horario_inicio' => 'required',
             'horario_fin' => 'required',
+            'atributos' => 'required',
         ]);
 
         try {
@@ -118,6 +127,9 @@ class SalasController extends Controller
             Log::error('Error al actualizar la sala: ' . $e->getMessage());
             return redirect()->back()->withErrors(['error' => 'Hubo un problema al actualizar la sala.']);
         }
+        $sala->atributos = $request->input('atributos');
+        $sala->save();
+
     }
 
     /**
@@ -126,9 +138,16 @@ class SalasController extends Controller
     public function destroy($id)
     {
         try {
-            $sala = Salas::findOrFail($id);
-            $sala->delete();
-            return redirect()->route('salas.index')->with('success', 'Sala eliminada correctamente.');
+            //se buscan las reservas de la sala
+            $reservas = Reservas::where('fk_idSala', $id)->get();
+            if (count($reservas) > 0) {
+                return redirect()->route('salas.index')->with('error', 'Ya hay reservaciones en la sala');
+            } else {
+                $sala = Salas::findOrFail($id);
+                $sala->delete();
+                return redirect()->route('salas.index')->with('success', 'Sala eliminada correctamente.');
+            }
+
         } catch (ModelNotFoundException $e) {
             Log::error('Sala no encontrada: ' . $e->getMessage());
             return redirect()->route('salas.index')->withErrors(['error' => 'No se encontró la sala.']);

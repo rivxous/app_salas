@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->string('nombre');
             $table->string('ubicacion');
-            $table->string('capacidad');
+            $table->integer('capacidad');
             $table->string('status')->nullable;
             $table->time('horario_inicio');
             $table->time('horario_fin');

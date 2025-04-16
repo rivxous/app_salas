@@ -74,12 +74,6 @@
         .card-header {
             border-bottom-color: var(--border-color);
         }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
     </style>
 
     <!-- Librerías JS -->
@@ -91,40 +85,32 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     {{-- Full calendar --}}
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.2/main.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.min.js'></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.2/main.min.js"></script>
 </head>
 <body class="{{ session('theme', 'light-theme') }}">
 
 <!-- Barra superior con botones -->
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mt-3 px-3">
-        <div>
-            <!-- Botón Inicio -->
-            <a href="{{ url('/') }}" class="btn btn-sm btn-outline-primary me-2">
-                <i class="bi bi-house-door"></i> Inicio
-            </a>
+    <div class="d-flex justify-content-between mt-3 me-3">
+        <!-- Botón para cambiar tema -->
+        <button id="toggle-theme" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-moon-fill"></i> Tema Oscuro
+        </button>
+        <!-- Botón inicio -->
+        <a class="btn btn-sm btn-outline-secondary" href="{{route("/")}}">
+            <i class="bi bi-house-check"></i> Home
+        </a>
 
-            <!-- Botón para cambiar tema -->
-            <button id="toggle-theme" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-moon-fill"></i> Tema Oscuro
-            </button>
-        </div>
-
+        <!-- Botón de Cerrar Sesión -->
         @auth()
-            <div class="user-info">
-                <!-- Nombre del usuario -->
-                <span class="text-muted">
-                <i class="bi bi-person-circle"></i>
-                {{ Auth::user()->nombre }} {{ Auth::user()->apellido }}
-            </span>
-
-                <!-- Botón de Cerrar Sesión -->
-                <button id="logout-button" class="btn btn-sm btn-danger ms-3">
-                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                </button>
-            </div>
+            <div>{{Auth::user()->full_name}}</div>
+            <button id="logout-button" class="btn btn-sm btn-danger">
+                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+            </button>
         @endauth
     </div>
 </div>
@@ -133,6 +119,9 @@
 <div class="container py-4">
     @yield('content')
 </div>
+
+
+
 
 <!-- Scripts globales -->
 <script>
@@ -184,6 +173,7 @@
             }
         });
     });
+
 </script>
 
 @yield('scripts')

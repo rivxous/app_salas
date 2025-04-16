@@ -118,13 +118,43 @@
                                 'onchange' => 'validarHorario()'
                             ]) !!}
                             <div id="horarioValidation" class="text-danger small d-none">
-                                <i class="bi bi-exclamation-circle"></i> La hora final debe ser posterior a la hora de inicio.
+                                <i class="bi bi-exclamation-circle"></i> La hora final debe ser posterior a la hora de
+                                inicio.
                             </div>
                             @error('horario_fin')
                             <div id="horarioFinError" class="invalid-feedback">
                                 <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
                             </div>
                             @enderror
+                        </div>
+                    </div>
+
+                    <!-- Campo Atributos -->
+                    <div class="mb-3">
+                        {!! Form::label('atributos', 'Atributos Disponibles', ['class' => 'form-label fw-bold']) !!}
+                        <div class="form-check">
+                            {!! Form::checkbox('atributos[]', 'Proyector', false, ['class' => 'form-check-input', 'id' => 'atributoProyector']) !!}
+                            {!! Form::label('atributoProyector', 'Proyector', ['class' => 'form-check-label']) !!}
+                        </div>
+                        <div class="form-check">
+                            {!! Form::checkbox('atributos[]', 'Monitor', false, ['class' => 'form-check-input', 'id' => 'atributoMonitor']) !!}
+                            {!! Form::label('atributoMonitor', 'Monitor', ['class' => 'form-check-label']) !!}
+                        </div>
+                        <div class="form-check">
+                            {!! Form::checkbox('atributos[]', 'Aire Acondicionado', false, ['class' => 'form-check-input', 'id' => 'atributoAire']) !!}
+                            {!! Form::label('atributoAire', 'Aire Acondicionado', ['class' => 'form-check-label']) !!}
+                        </div>
+                        <div class="form-check">
+                            {!! Form::checkbox('atributos[]', 'Wifi', false, ['class' => 'form-check-input', 'id' => 'atributoWifi']) !!}
+                            {!! Form::label('atributoWifi', 'Wifi', ['class' => 'form-check-label']) !!}
+                        </div>
+                        <div class="form-check">
+                            {!! Form::checkbox('atributos[]', 'Video Conferencia', false, ['class' => 'form-check-input', 'id' => 'atributoVideoConferencia']) !!}
+                            {!! Form::label('atributoVideoConferencia', 'Video Conferencia', ['class' => 'form-check-label']) !!}
+                        </div>
+                        <div class="form-check">
+                            {!! Form::checkbox('atributos[]', 'Bocinas', false, ['class' => 'form-check-input', 'id' => 'atributoBocinas']) !!}
+                            {!! Form::label('atributoBocinas', 'Bocinas', ['class' => 'form-check-label']) !!}
                         </div>
                     </div>
 
@@ -167,7 +197,7 @@
         document.getElementById('horario_fin').addEventListener('change', validarHorario);
 
         // Validación de Bootstrap
-        (function() {
+        (function () {
             'use strict'
 
             const forms = document.querySelectorAll('.needs-validation')

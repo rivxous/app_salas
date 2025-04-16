@@ -21,7 +21,8 @@ class Salas extends Model
         'capacidad',
         'status',
         'horario_inicio',
-        'horario_fin'
+        'horario_fin',
+        'atributos'
     ];
 
     protected $casts = [
@@ -35,6 +36,8 @@ class Salas extends Model
         'horario_disponibilidad',
         'disponibilidad_hoy'
     ];
+
+
 
     /**
      * Relación con las reservas de esta sala

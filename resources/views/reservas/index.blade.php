@@ -8,7 +8,6 @@
             <h2 class="text-primary">Listado de reservas QQGAS</h2>
         </div>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{{ route('/') }}" class="btn btn-success shadow-sm">Regresar al inicio</a>
             <a href="{{ route('reservas.create') }}" class="btn btn-success shadow-sm">Crear reserva</a>
         </div>
 
@@ -45,7 +44,11 @@
                         <td class="fw-bold text-uppercase">{{ $reserva->titulo }}</td>
                         <td>{{ $reserva->descripcion }}</td>
                         <td>{{ $reserva->tipoEvento }}</td>
-                        <td>{{ $reserva->sala->nombre }}</td>
+                        @if(!is_null($reserva->sala))
+                            <td>{{ $reserva->sala->nombre }}</td>
+                        @else
+                            <td>Sala Borrada</td>
+                        @endif
                         <td>{{ $reserva->horarios_new }}</td>
                         <td>{{ $reserva->usuario_creador_reserva->nombre }}</td>
                         <td>{{ $reserva->participantes }}</td>

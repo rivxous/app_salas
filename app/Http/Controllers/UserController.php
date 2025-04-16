@@ -8,6 +8,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -111,9 +113,48 @@ class UserController extends Controller
 
     public function sync()
     {
-        // Sincronizar usuarios desde una fuente externa - LDAP
-        Session::flash('success', 'Usuarios sincronizados exitosamente.');
-        return redirect()->route('users.index');
+        try {
+            $conexion = ldap_connect(env('LDAP_HOST'));
+            ldap_set_option($conexion, LDAP_OPT_PROTOCOL_VERSION, 3);
+            ldap_set_option($conexion, LDAP_OPT_REFERRALS, 0);
+
+            if (!$conexion) {
+                return redirect()->route('usuarios.index')->withErrors(['error' => 'No se pudo conectar al servidor LDAP.']);
+            }
+
+            if (!@ldap_bind($conexion, env('LDAP_USER'), env('LDAP_PASSWORD'))) {
+                return redirect()->route('usuarios.index')->withErrors(['error' => 'Error al autenticarse contra LDAP.']);
+            }
+
+            $consulta = ldap_search($conexion, env('LDAP_DN'), '(objectClass=user)');
+            $entradas = ldap_get_entries($conexion, $consulta);
+
+            $users = [];
+
+            for ($i = 0; $i < $entradas['count']; $i++) {
+                $entrada = $entradas[$i];
+
+                if (!isset($entrada['samaccountname'][0])) continue;
+
+                $users[] = (object) [
+                    'username' => $entrada['samaccountname'][0] ?? '',
+                    'nombre' => $entrada['givenname'][0] ?? '',
+                    'apellido' => $entrada['sn'][0] ?? '',
+                    'unidad_funcinal' => $entrada['department'][0] ?? '',
+                    'email' => $entrada['mail'][0] ?? '',
+                    'id' => null // Para evitar errores con el botón eliminar
+                ];
+            }
+
+            ldap_close($conexion);
+
+            Session::flash('success', 'Usuarios sincronizados correctamente desde LDAP.');
+
+            return view('usuarios.index', compact('users'));
+
+        } catch (\Exception $e) {
+            return redirect()->route('usuarios.index')->withErrors(['error' => 'Error al sincronizar usuarios: ' . $e->getMessage()]);
+        }
     }
 
 
