@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Reservas;
 use App\Models\Salas;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -34,7 +35,7 @@ class SalasController extends Controller
     {
         try {
             $salas = Salas::orderBy('id', 'desc')->get();
-//            dd($salas);
+//return $salas;
             return view('salas.index', ['salas' => $salas]);
         } catch (\Exception $e) {
             Log::error('Error al obtener las salas: ' . $e->getMessage());
@@ -65,18 +66,38 @@ class SalasController extends Controller
             'nombre' => ['required', Rule::unique('salas')->whereNull('deleted_at')],
             'ubicacion' => 'required',
             'capacidad' => 'required|numeric',
-            'status' => 'required',
-            'horario_inicio' => 'required',
-            'horario_fin' => 'required',
-            'atributos' => 'required',
+            'status' => 'required|in:Habilitada,Inhabilitada, Mantenimiento',
+            'horario_inicio' => [
+                'required',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    $minTime = Carbon::createFromTime(7, 30);
+                    $inputTime = Carbon::createFromFormat('H:i', $value);
+
+                    if ($inputTime->lt($minTime)) {
+                        $fail('La hora de inicio debe ser a partir de las 7:30 AM');
+                    }
+                }
+            ],
+            'horario_fin' => [
+                'required',
+                'date_format:H:i',
+                'after:horario_inicio',
+                function ($attribute, $value, $fail) {
+                    $maxTime = Carbon::createFromTime(16, 30);
+                    $inputTime = Carbon::createFromFormat('H:i', $value);
+
+                    if ($inputTime->gt($maxTime)) {
+                        $fail('La hora final no puede ser después de las 4:30 PM');
+                    }
+                }
+            ],
+            'atributos' => 'required|array|min:1', // Obliga a seleccionar al menos 1
         ]);
 
         try {
-//            Salas::create($request->all());
             $sala = new Salas($request->all());
-            $sala->atributos = json_encode($request->atributos); // Laravel lo convierte automáticamente a JSON
             $sala->save();
-
             return redirect()->route('salas.index')->with('success', 'Sala creada exitosamente!')->withInput();
         } catch (\Exception $e) {
             Log::error('Error al crear la sala: ' . $e->getMessage());
@@ -92,6 +113,7 @@ class SalasController extends Controller
     {
         try {
             $sala = Salas::findOrFail($id);
+//           return $sala;
             return view('salas.edit')->with(['sala' => $sala]);
         } catch (ModelNotFoundException $e) {
             Log::error('Sala no encontrada: ' . $e->getMessage());
@@ -110,10 +132,33 @@ class SalasController extends Controller
         $validatedData = $request->validate([
             'ubicacion' => 'required',
             'capacidad' => 'required|integer|min:1',
-            'status' => 'required|in:Habilitada,Inhabilitada',
-            'horario_inicio' => 'required',
-            'horario_fin' => 'required',
-            'atributos' => 'required',
+            'status' => 'required|in:Habilitada,Inhabilitada, Mantenimiento',
+            'horario_inicio' => [
+                'required',
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    $minTime = Carbon::createFromTime(7, 30);
+                    $inputTime = Carbon::createFromFormat('H:i', $value);
+
+                    if ($inputTime->lt($minTime)) {
+                        $fail('La hora de inicio debe ser a partir de las 7:30 AM');
+                    }
+                }
+            ],
+            'horario_fin' => [
+                'required',
+                'date_format:H:i',
+                'after:horario_inicio',
+                function ($attribute, $value, $fail) {
+                    $maxTime = Carbon::createFromTime(16, 30);
+                    $inputTime = Carbon::createFromFormat('H:i', $value);
+
+                    if ($inputTime->gt($maxTime)) {
+                        $fail('La hora final no puede ser después de las 4:30 PM');
+                    }
+                }
+            ],
+            'atributos' => 'required|array|min:1', // Obliga a seleccionar al menos 1
         ]);
 
         try {
@@ -127,7 +172,6 @@ class SalasController extends Controller
             Log::error('Error al actualizar la sala: ' . $e->getMessage());
             return redirect()->back()->withErrors(['error' => 'Hubo un problema al actualizar la sala.']);
         }
-        $sala->atributos = $request->input('atributos');
         $sala->save();
 
     }

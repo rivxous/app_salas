@@ -118,6 +118,7 @@ class ReservasController extends Controller
     {
         $salas = Salas::with('horariosReservas')->get();
         $usuarios = User::pluck('nombre', 'id');
+//        return $salas;
 
         // Obtener días/horarios ocupados para cada sala
         $horariosOcupados = [];
