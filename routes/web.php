@@ -40,6 +40,8 @@ Route::post('login', [AuthController::class, 'login'])->name('login.post');
 Route::get('logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('user/nuevo', [UserController::class, 'create']);
 Route::post('user/nuevo', [UserController::class, 'store'])->name('guardar_usuario');
+
+//ruta LDAP; sincronización usuarios
 Route::post('/users/sync', [UserController::class, 'sync'])->name('users.sync');
 
 Route::get('/', [InicioController::class, 'inicio'])->name('/')->middleware('auth');

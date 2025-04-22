@@ -21,8 +21,9 @@
         @endif
 
         <div class="d-flex justify-content-end mb-3">
-            <button type="button" class="btn btn-primary" onclick="confirmSync()">Sincronizar Usuarios</button>
+            <button type="button" class="btn btn-success" onclick="confirmSync()">Sincronizar LDAP</button>
         </div>
+
 
         <form id="sync-form" action="{{ route('users.sync') }}" method="POST" style="display: none;">
             @csrf
