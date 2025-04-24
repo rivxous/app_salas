@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
@@ -118,38 +119,51 @@ class UserController extends Controller
             ldap_set_option($conexion, LDAP_OPT_PROTOCOL_VERSION, 3);
             ldap_set_option($conexion, LDAP_OPT_REFERRALS, 0);
 
+
             if (!$conexion) {
                 return redirect()->route('usuarios.index')->withErrors(['error' => 'No se pudo conectar al servidor LDAP.']);
             }
 
-            if (!@ldap_bind($conexion, env('LDAP_USER'), env('LDAP_PASSWORD'))) {
+            if (!@ldap_bind($conexion, env('LDAP_USER') . '@' . env('LDAP_DOMAIN'), env('LDAP_PASSWORD'))) {
                 return redirect()->route('usuarios.index')->withErrors(['error' => 'Error al autenticarse contra LDAP.']);
             }
+//            $filter = "(sAMAccountName=BARRETODA)";
+            $filter = '(objectClass=user)';
 
-            $consulta = ldap_search($conexion, env('LDAP_DN'), '(objectClass=user)');
+            $consulta = ldap_search($conexion, env('LDAP_DN'), $filter);
             $entradas = ldap_get_entries($conexion, $consulta);
+//            dd($entradas);
 
-            $users = [];
 
             for ($i = 0; $i < $entradas['count']; $i++) {
                 $entrada = $entradas[$i];
+//             dd($entrada['samaccountname'][0]);
 
-                if (!isset($entrada['samaccountname'][0])) continue;
+                if (isset($entrada['samaccountname'][0])) {
+                    $cantidad_user = DB::table('users')
+                        ->where('username', '=', $entrada['samaccountname'][0])
+                        ->count();
+//                    dd($cantidad_user);
 
-                $users[] = (object) [
-                    'username' => $entrada['samaccountname'][0] ?? '',
-                    'nombre' => $entrada['givenname'][0] ?? '',
-                    'apellido' => $entrada['sn'][0] ?? '',
-                    'unidad_funcinal' => $entrada['department'][0] ?? '',
-                    'email' => $entrada['mail'][0] ?? '',
-                    'id' => null // Para evitar errores con el botón eliminar
-                ];
+                    if ($cantidad_user == 0) {
+//                        dd($cantidad_user,$entrada['samaccountname'][0]);
+                        User::create([
+                            'username' => $entrada['samaccountname'][0] ?? '',
+                            'nombre' => $entrada['givenname'][0] ?? '',
+                            'apellido' => $entrada['sn'][0] ?? '',
+                            'unidad_funcinal' => $entrada['department'][0] ?? '',
+                            'email' => $entrada['samaccountname'][0].'@'.env('LDAP_DOMAIN') ?? '',
+                            'password' => null
+                        ]);
+                    }
+                }
+
             }
-
             ldap_close($conexion);
 
             Session::flash('success', 'Usuarios sincronizados correctamente desde LDAP.');
 
+            $users = User::get();
             return view('usuarios.index', compact('users'));
 
         } catch (\Exception $e) {
