@@ -33,7 +33,7 @@ class AuthController extends Controller {
             }
 
             // Intento de autenticación con LDAP
-            if (true) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
+            if (env('usar_ldap')) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
                 if (!@ldap_bind($conexion, "{$credentials['username']}@" . env('LDAP_DOMAIN'), $credentials['password'])) {
                     return redirect()->back()->withErrors(['error' => 'Credenciales LDAP incorrectas. Verifica tu usuario y contraseña.']);
                 }
