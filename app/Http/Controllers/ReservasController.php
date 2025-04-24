@@ -117,7 +117,8 @@ class ReservasController extends Controller
     public function create()
     {
         $salas = Salas::with('horariosReservas')->get();
-        $usuarios = User::pluck('nombre', 'id');
+        $usuarios = User::get()->pluck('full_name', 'id');
+//        return $usuarios;
 //        return $salas;
 
         // Obtener días/horarios ocupados para cada sala
@@ -385,7 +386,7 @@ class ReservasController extends Controller
         try {
             $reserva = Reservas::with(['reserva_horarios', 'participantes_reservas'])->findOrFail($id);
             $salas = Salas::without('reservas')->get();
-            $usuarios = User::pluck('nombre', 'id');
+            $usuarios = User::get()->pluck('full_name', 'id');
 
             return view('reservas.edit', compact('reserva', 'salas', 'usuarios'));
         } catch (ModelNotFoundException $e) {
