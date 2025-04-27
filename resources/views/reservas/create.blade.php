@@ -5,7 +5,7 @@
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-10">
+            <div class="col-md-6">
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
                         <h2 class="h5 mb-0">Crear Nueva Reserva</h2>
@@ -22,23 +22,30 @@
                             </div>
                         @endif
 
-                        {!! Form::open(['route' => 'reservas.store', 'method' => 'POST', 'id' => 'reservaForm', 'class' => 'needs-validation', 'novalidate' => true]) !!}
+                        {!! Form::open([
+                            'route' => 'reservas.store',
+                            'method' => 'POST',
+                            'id' => 'reservaForm',
+                            'class' => 'needs-validation',
+                            'novalidate' => true,
+                        ]) !!}
 
                         <!-- Ubicación -->
                         <div class="mb-3">
                             {!! Form::label('ubicacion', 'Ubicación', ['class' => 'form-label fw-bold']) !!}
                             <select id="ubicacion" name="ubicacion" class="form-select" required>
                                 <option value="">-- Seleccione una ubicación --</option>
-                                @foreach($salas->pluck('ubicacion')->unique() as $ubicacion)
-                                    <option value="{{ $ubicacion }}" {{ old('ubicacion') == $ubicacion ? 'selected' : '' }}>
+                                @foreach ($salas->pluck('ubicacion')->unique() as $ubicacion)
+                                    <option value="{{ $ubicacion }}"
+                                        {{ old('ubicacion') == $ubicacion ? 'selected' : '' }}>
                                         {{ $ubicacion }}
                                     </option>
                                 @endforeach
                             </select>
                             @error('ubicacion')
-                            <div class="invalid-feedback d-block">
-                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                            </div>
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
                             @enderror
                         </div>
 
@@ -49,9 +56,9 @@
                                 <option value="">-- Seleccione una sala --</option>
                             </select>
                             @error('fk_idSala')
-                            <div class="invalid-feedback d-block">
-                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                            </div>
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
                             @enderror
                         </div>
 
@@ -61,20 +68,25 @@
                             <!-- Tipo de evento -->
                             <div class="mb-3">
                                 {!! Form::label('tipoEvento', 'Tipo de Evento', ['class' => 'form-label fw-bold']) !!}
-                                {!! Form::select('tipoEvento', [
-                                    '' => '-- Seleccione un tipo --',
-                                    'Reunión' => 'Reunión',
-                                    'Charla' => 'Charla',
-                                    'Curso' => 'Curso'
-                                ], null, [
-                                    'class' => 'form-select',
-                                    'id' => 'tipoEvento',
-                                    'required' => true
-                                ]) !!}
+                                {!! Form::select(
+                                    'tipoEvento',
+                                    [
+                                        '' => '-- Seleccione un tipo --',
+                                        'Reunión' => 'Reunión',
+                                        'Charla' => 'Charla',
+                                        'Curso' => 'Curso',
+                                    ],
+                                    null,
+                                    [
+                                        'class' => 'form-select',
+                                        'id' => 'tipoEvento',
+                                        'required' => true,
+                                    ],
+                                ) !!}
                                 @error('tipoEvento')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
@@ -82,7 +94,8 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <label class="form-label fw-bold">Fechas y Horarios</label>
-                                    <button type="button" id="agregarFecha" class="btn btn-sm btn-success" style="display: none;">
+                                    <button type="button" id="agregarFecha" class="btn btn-sm btn-success"
+                                        style="display: none;">
                                         <i class="bi bi-plus-circle"></i> Agregar fecha
                                     </button>
                                 </div>
@@ -95,7 +108,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             {!! Form::label('horas_inicio[]', 'Hora de Inicio', ['class' => 'form-label']) !!}
-                                            {!! Form::time('horas_inicio[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                            {!! Form::time('horas_inicio[]', null, ['class' => 'form-control', 'required' => true] ) !!}
                                         </div>
                                         <div class="col-md-3">
                                             {!! Form::label('horas_fin[]', 'Hora de Fin', ['class' => 'form-label']) !!}
@@ -116,12 +129,12 @@
                                 {!! Form::text('titulo', old('titulo'), [
                                     'class' => 'form-control',
                                     'placeholder' => 'Título de la reserva',
-                                    'required' => true
+                                    'required' => true,
                                 ]) !!}
                                 @error('titulo')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
@@ -131,12 +144,12 @@
                                 {!! Form::textarea('descripcion', old('descripcion'), [
                                     'class' => 'form-control',
                                     'placeholder' => 'Descripción de la reserva',
-                                    'rows' => 3
+                                    'rows' => 3,
                                 ]) !!}
                                 @error('descripcion')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
@@ -147,12 +160,12 @@
                                     'id' => 'fk_participantes',
                                     'class' => 'form-select',
                                     'multiple' => 'multiple',
-                                    'style' => 'width: 100%'
+                                    'style' => 'width: 100%',
                                 ]) !!}
                                 @error('participantes')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
                         </div>
@@ -164,12 +177,20 @@
                             </a>
                             {!! Form::button('<i class="bi bi-save"></i> Crear Reserva', [
                                 'type' => 'submit',
-                                'class' => 'btn btn-primary'
+                                'class' => 'btn btn-primary',
                             ]) !!}
                         </div>
 
                         {!! Form::close() !!}
                     </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="container-fluid shadow-lg bg-white p-3 rounded-3">
+                    <h2>
+                        Calendario de Reservas
+                    </h2>
+                    <div id="calendar" class=""></div>
                 </div>
             </div>
         </div>
@@ -182,6 +203,109 @@
             // Datos de las salas
             const salas = @json($salas);
             const salasPorUbicacion = {};
+
+            // Si el calendario todavía no existe, créalo;
+            // si ya existe, vacíalo y vuelve a cargar.
+
+            const calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                slotMinTime: '08:00:00',
+                slotMaxTime: '17:00:00',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                locale: 'es',
+                timeZone: 'America/Lima',
+                firstDay: 1,
+                navLinks: true,
+                nowIndicator: true,
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                slotLabelFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                },
+                dateClick: function(info) {
+                    // 'info' es un objeto que contiene información sobre el clic
+                    var fechaCompleta = info.dateStr; // Esto te dará la fecha en formato 'YYYY-MM-DD'
+                    var HoraInicio = fechaCompleta.split("T")[1]
+                    document.querySelector(' [name="horas_inicio\\[\\]"] ').value = HoraInicio;
+                   document.querySelector(' [name="fechas\\[\\]"] ').value = fechaCompleta.split("T")[0];
+
+                    console.log(fechaCompleta)
+                    console.log(HoraInicio)
+
+
+                    // Aquí puedes realizar las acciones que necesites con la fecha y la hora capturadas,
+                    // como enviarlas a un servidor, mostrarlas en un formulario, etc.
+                },
+                eventClassNames: 'fc-event-custom',
+                slotLabelInterval: '01:00:00',
+                slotDuration: '00:30:00',
+                allDaySlot: false,
+                height: 'auto',
+                views: {
+                    timeGridWeek: {
+                        dayHeaderFormat: {
+                            weekday: 'short',
+                            day: 'numeric'
+                        }
+                    }
+                },
+
+                /*  Popover y demás opciones… */
+                eventDidMount(info) {
+                    const content = `
+                        <div class="popover-content-custom">
+                            <p class="mb-1"><strong>${info.event.title}</strong></p>
+                            <p class="mb-1">${info.event.extendedProps.description}</p>
+                            <hr class="my-1">
+                            <small>Sala: ${info.event.extendedProps.sala}</small><br>
+                            <small>Organizador: ${info.event.extendedProps.organizador}</small>
+                        </div>`;
+                    new bootstrap.Popover(info.el, {
+                        title: `<i class="fas fa-calendar me-2"></i>Detalles de reserva`,
+                        content,
+                        trigger: 'hover',
+                        placement: 'auto',
+                        container: 'body',
+                        html: true,
+                        sanitize: false
+                    });
+                }
+            });
+
+            calendar.render();
+            fk_idSala.addEventListener('change', async (e) => {
+                try {
+                    const res = await fetch("{{ route('buscar_salas_horios_disponibles') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            id_sala: e.target.value
+                        })
+                    });
+                    const data = await res.json();
+                    console.log(data);
+                    // Agrego la fuente de eventos que acaba de llegar
+                    calendar.addEventSource(data.data); // o simplemente  events: data  si creas nuevo
+
+                } catch (err) {
+                    console.error(err);
+                    alert('Error al cargar eventos');
+                }
+            });
+
+
 
             salas.forEach(sala => {
                 if (!salasPorUbicacion[sala.ubicacion]) {

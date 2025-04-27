@@ -6,7 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SalasController;
 use App\Http\Controllers\InicioController;
 use App\Http\Controllers\ReservasController;
-
+use App\Http\Controllers\ReporteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,7 +20,7 @@ use App\Http\Controllers\ReservasController;
 */
 
 
-Route::get('p1', [salassController::class, 'prueba']);
+Route::get('p1', [salasController::class, 'prueba']);
 Route::get('p2', [ReservasController::class, function () {
     $reservas = \App\Models\Reservas::get();
     return response()->json($reservas);
@@ -45,13 +45,13 @@ Route::post('/users/sync', [UserController::class, 'sync'])->name('users.sync');
 Route::get('/', [InicioController::class, 'inicio'])->name('/')->middleware('auth');
 Route::prefix('/auth')->middleware('auth')->group(function () {
 
-    Route::resource('salas', SalasController::class);
+    Route::resource('salas', SalasController::class); 
     Route::get('listar-todas-salas', [SalasController::class,'listarTodas']);
     Route::post('buscar-salas-horios-disponibles', [ReservasController::class,'buscar_salas_horios_disponibles']);
     Route::resource('reservas', ReservasController::class);
     Route::get('listar_reservas_calendario',[ReservasController::class,'listar_reservas_calendario'])->name('listar_reservas_calendario');
 
-   Route::resource('reportes', ReportesController::class);
+  // Route::resource('reportes', ReportesController::class);
 
     // WEB
     Route::prefix('/usuarios')->group(function () {
@@ -60,7 +60,10 @@ Route::prefix('/auth')->middleware('auth')->group(function () {
         Route::get('/{id}', [UserController::class, 'show'])->name('usuarios.show');
         Route::get('/editar/{id}', [UserController::class, 'edit'])->name('usuarios.edit');
     });
-
+    //reportes index 
+    Route::prefix('/reportes')->group(function () {
+        Route::get('/' , [ReporteController::class ,'index'])->name("reportes.index");
+    });
     //api
     Route::prefix('/api')->group(function () {
         Route::prefix('/user')->group(function () {

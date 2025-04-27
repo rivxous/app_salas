@@ -3,6 +3,7 @@
 @section('title', 'Sistema de Reservas')
 
 @section('content')
+    {{ Auth::user()->rol }}
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -24,27 +25,30 @@
                         </div>
                     </div>
 
-                    <!-- Módulo de Salas -->
-                    <div class="nav-item mx-3">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Salas</h5>
-                                <p class="card-text">Visualización de salas</p>
-                                <a href="{{ route('salas.index') }}" class="btn btn-warning">Acceder</a>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Módulo de Reservas -->
-                    <div class="nav-item">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body text-center">
-                                <h5 class="card-title">Reservas</h5>
-                                <p class="card-text">Visualización de reservas actuales.</p>
-                                <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
+                    @if (Auth::user()->rol == 'admin')
+                        <!-- Módulo de Salas -->
+                        <div class="nav-item mx-3">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Salas</h5>
+                                    <p class="card-text">Visualización de salas</p>
+                                    <a href="{{ route('salas.index') }}" class="btn btn-warning">Acceder</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                        <!-- Módulo de Reservas -->
+                        <div class="nav-item">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Reservas</h5>
+                                    <p class="card-text">Visualización de reservas actuales.</p>
+                                    <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
 
                     <!-- Módulo de Reportes Estadísticos -->
                     <div class="nav-item mx-3">
@@ -89,6 +93,23 @@
 
     <!-- Estilos Personalizados -->
     <style>
+        /* En tu archivo CSS */
+        .fc-event-custom {
+            border-radius: 4px;
+            border: none;
+            font-size: 0.9em;
+            padding: 2px 5px;
+        }
+
+        .fc-timegrid-slots td {
+            vertical-align: top;
+        }
+
+        .popover-content-custom {
+            max-width: 300px;
+            font-size: 0.9em;
+        }
+
         #sidebar {
             min-height: 100vh;
             background: #2c3e50;
@@ -144,19 +165,21 @@
 
     <!-- Script del Calendario -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
+                slotMinTime: '08:00:00',
+                slotMaxTime: '17:00:00',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 events: {
-                    url: '{{ route("listar_reservas_calendario") }}',
+                    url: '{{ route('listar_reservas_calendario') }}',
                     method: 'GET',
-                    failure: function () {
+                    failure: function() {
                         alert('Error al cargar eventos');
                     }
                 },
@@ -165,15 +188,31 @@
                 firstDay: 1,
                 navLinks: true,
                 nowIndicator: true,
-                eventTimeFormat: {
+                eventTimeFormat: { // Formato de hora en la vista
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                    meridiem: 'short'
+                },
+                slotLabelFormat: { // Formato de las horas en la columna
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false
                 },
-                eventDidMount: function (info) {
+                eventDidMount: function(info) {
+                    const content = `
+            <div class="popover-content-custom">
+                <p class="mb-1"><strong>${info.event.title}</strong></p>
+                <p class="mb-1">${info.event.extendedProps.description}</p>
+                <hr class="my-1">
+                <small>Sala: ${info.event.extendedProps.sala}</small><br>
+                <small>Organizador: ${info.event.extendedProps.organizador}</small>
+            </div>
+        `;
+
                     new bootstrap.Popover(info.el, {
-                        title: `<i class="fas fa-calendar me-2"></i>${info.event.title}`,
-                        content: info.event.extendedProps.description,
+                        title: `<i class="fas fa-calendar me-2"></i>Detalles de reserva`,
+                        content: content,
                         trigger: 'hover',
                         placement: 'auto',
                         container: 'body',
@@ -182,10 +221,18 @@
                     });
                 },
                 eventClassNames: 'fc-event-custom',
-                slotMinTime: '07:00:00',
-                slotMaxTime: '22:00:00',
+                slotLabelInterval: '01:00:00', // Intervalo de horas
+                slotDuration: '00:30:00', // Duración de cada slot
                 allDaySlot: false,
-                height: 'auto'
+                height: 'auto',
+                views: {
+                    timeGridWeek: {
+                        dayHeaderFormat: {
+                            weekday: 'short',
+                            day: 'numeric'
+                        }
+                    }
+                }
             });
 
             calendar.render();

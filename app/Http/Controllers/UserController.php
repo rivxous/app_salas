@@ -40,15 +40,16 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-//        dd($request->all());
+      
         // Validar los datos enviados en la solicitud
+        /** 
         $request->validate([
-            'username' => 'required|string|max:255',
+          //  'username' => 'required|string|max:255',
             'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
+          //  'apellido' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-        ]);
+        ]);*/
         $guardar = User::crearUsuario($request);
         if ($guardar) {
             return response()->json(['mensaje' => 'listo']);
@@ -113,6 +114,7 @@ class UserController extends Controller
 
     public function sync()
     {
+        Log::info("ldap" );
         try {
             $conexion = ldap_connect(env('LDAP_HOST'));
             ldap_set_option($conexion, LDAP_OPT_PROTOCOL_VERSION, 3);
@@ -121,14 +123,18 @@ class UserController extends Controller
             if (!$conexion) {
                 return redirect()->route('usuarios.index')->withErrors(['error' => 'No se pudo conectar al servidor LDAP.']);
             }
-
+            Log::info("paso la conexion  ldap" );
+            /** 
             if (!@ldap_bind($conexion, env('LDAP_USER'), env('LDAP_PASSWORD'))) {
+                Log::info("entro en el condicional" );
                 return redirect()->route('usuarios.index')->withErrors(['error' => 'Error al autenticarse contra LDAP.']);
-            }
-
-            $consulta = ldap_search($conexion, env('LDAP_DN'), '(objectClass=user)');
+            }*/
+            Log::info("segunda validacion  ldap" );
+            $consulta = ldap_search($conexion, env('LDAP_DN'), filter: '(objectClass=user)');
+            Log::info($consulta);
             $entradas = ldap_get_entries($conexion, $consulta);
-
+            Log::info("entradas ldap" );
+            Log::info($entradas );
             $users = [];
 
             for ($i = 0; $i < $entradas['count']; $i++) {

@@ -5,16 +5,51 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use PhpParser\Node\Expr\Cast\Object_;
 
-class AuthController extends Controller {
-    public function showLogin() {
+use Illuminate\Support\Facades\Log;
+class AuthController extends Controller
+{
+    public function showLogin()
+    {
         return view('auth.login');
     }
 
-    public function login(Request $request) {
+    public function login2(Request $request)
+    {
+        // 1. Validar la solicitud
+        $request->validate([
+            'username' => 'required|string', // Validar que sea string
+            'password' => 'required|string', // Validar que sea string
+        ]);
+
+        $credentials = [
+            'username' => $request->input('username'),
+            'password' => $request->input('password'),
+        ];
+        Log::info("log auth");
+        Log::info($request->all());
+        try {
+            if (Auth::attempt($credentials)) {
+                // Regenerar la sesión para prevenir ataques de fijación de sesión
+                $request->session()->regenerate(); 
+                return redirect()->intended('/');
+            }
+
+            return redirect()->back()->withErrors([
+                'username' => 'Las credenciales proporcionadas no coinciden con nuestros registros.', // O un mensaje más general
+            ])->onlyInput('username'); // Opcional: mantener solo el username en el formulario
+
+        } catch (\Exception $e) {
+          
+            Log::error('Error en el proceso de login: ' . $e->getMessage(), ['exception' => $e]);
+
+            return redirect()->back()->withErrors([
+                'error' => 'Ocurrió un error durante el inicio de sesión. Inténtalo de nuevo más tarde.',
+            ]);
+        }
+    }
+    public function login(Request $request)
+    {
         $request->validate([
             'username' => 'required',
             'password' => 'required'
@@ -29,11 +64,12 @@ class AuthController extends Controller {
             ldap_set_option($conexion, LDAP_OPT_REFERRALS, 0);
 
             if (!$conexion) {
+               
                 return redirect()->back()->withErrors(['error' => 'No se pudo conectar al servidor LDAP.']);
             }
 
             // Intento de autenticación con LDAP
-            if (true) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
+            if (false) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
                 if (!@ldap_bind($conexion, "{$credentials['username']}@" . env('LDAP_DOMAIN'), $credentials['password'])) {
                     return redirect()->back()->withErrors(['error' => 'Credenciales LDAP incorrectas. Verifica tu usuario y contraseña.']);
                 }
@@ -73,7 +109,8 @@ class AuthController extends Controller {
 
 
 
-    public function logout() {
+    public function logout()
+    {
         Auth::logout();
         return redirect()->route('login');
     }

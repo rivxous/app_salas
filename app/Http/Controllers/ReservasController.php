@@ -10,33 +10,52 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\ReservaCreadaNotification;
 
 class ReservasController extends Controller
 {
 
+
+    public function event( $reservas )
+    {
+        $events = $reservas->flatMap(function ($reserva) {
+            return $reserva->reserva_horarios->map(function ($horario) use ($reserva) {
+                // Formatear correctamente la fecha/hora
+                $start = Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_inicio)
+                    ->setTimezone('UTC')
+                    ->toIso8601String();
+
+                $end = Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_fin)
+                    ->setTimezone('UTC')
+                    ->toIso8601String();
+
+                return [
+                    'title' => $reserva->titulo,
+                    'start' => $start,
+                    'end' => $end,
+                    'color' => '#ff5733',
+                    'description' => $reserva->descripcion,
+                    'extendedProps' => [
+                        'sala' => $reserva->sala->nombre,
+                        'organizador' => $reserva->usuario_creador_reserva->nombre
+                    ]
+                ];
+            });
+        });
+        return $events;
+    }
     // Método para obtener los eventos desde la base de datos
     public function listar_reservas_calendario()
     {
         $reservas = Reservas::with('reserva_horarios')->get();
 
-        $events = $reservas->flatMap(function ($reserva) {
-            return $reserva->reserva_horarios->map(function ($horario) use ($reserva) {
-                return [
-                    'title' => $reserva->titulo,
-                    'start' => Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_inicio)->toIso8601String(),
-                    'end' => Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_fin)->toIso8601String(),
-                    'color' => '#ff5733',
-                    'description' => $reserva->descripcion,
-                ];
-            });
-        });
-
+       $events = $this->event($reservas);
         return response()->json($events);
     }
 
@@ -49,6 +68,7 @@ class ReservasController extends Controller
 
     public function index()
     {
+
         try {
             $reservas = Reservas::with(['sala', 'usuario_creador_reserva', 'participantes_reservas.usuario'])
                 ->orderBy('id', 'desc')
@@ -92,7 +112,7 @@ class ReservasController extends Controller
         }
     }
 
-
+ 
     public function buscar_salas_horios_disponibles(Request $request)
     {
         $request->validate([
@@ -101,10 +121,10 @@ class ReservasController extends Controller
         try {
             $reservas = Reservas::where('fk_idSala', $request->id_sala)
                 ->get();
-
-
             if (count($reservas) > 0) {
-                return $reservas;
+                return response()->json([
+                    "data" =>  $this->event($reservas),
+                ],200);
             } else {
                 return response()->json(['msj' => 'No hay disponibilidad en la sala'], 404);
             }
@@ -246,7 +266,7 @@ class ReservasController extends Controller
             'descripcion.required' => 'Debe ingresar una descripción para la reserva.',
             'descripcion.max' => 'La descripción no debe exceder los 1000 caracteres.',
             'tipoEvento.required' => 'Debe seleccionar un tipo de evento.',
-//            'tipoEvento.in' => 'Debe seleccionar un tipo de evento.',
+            //            'tipoEvento.in' => 'Debe seleccionar un tipo de evento.',
             'fk_idSala.required' => 'Debe seleccionar una sala para la reserva.',
             'fk_idSala.exists' => 'La sala seleccionada no es válida.',
             'participantes.required' => 'Debe seleccionar al menos un participante.',
@@ -288,7 +308,7 @@ class ReservasController extends Controller
                             })
                             ->get();
                         if (count($existeReserva) > 0) {
-                            $reserva = strtoupper($existeReserva[0]->reserva->titulo);
+                            $reserva = strtoupper($existeReserva[0]->reserva->titulo ?? "");
                             $validator->errors()->add(
                                 "fechas.$index",
                                 "La sala ya está reservada para el $fecha entre $horaInicio y $horaFin con la reserva: $reserva"
@@ -340,16 +360,13 @@ class ReservasController extends Controller
                 ];
             }
             HorariosReservas::insert($horariosData);
-
             DB::commit();
-
             // Notificar a los participantes
-//            $this->notificarParticipantes($reserva, $request->participantes);
+            $this->notificarParticipantes($reserva, $request->participantes);
 
             return redirect()
                 ->route('reservas.index')
                 ->with('success', 'Reserva creada exitosamente!');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al crear la reserva: ' . $e->getMessage(), [
@@ -369,12 +386,25 @@ class ReservasController extends Controller
     {
         try {
             $participantes = User::whereIn('id', $participantesIds)->get();
+            // Cargar relaciones necesarias para la notificación
+            $reserva->load(['sala', 'reserva_horarios']);
+            Log::info("reserva");
+            Log::info($reserva);
+            Log::info($reserva->id);
+            Log::info($reserva->title);
+            // Notificar a través de los canales configurados
+            Notification::send($participantes, new ReservaCreadaNotification($reserva));
 
-            \Illuminate\Support\Facades\Notification::send($participantes, new ReservaCreadaNotification($reserva));
-
-            // También puedes enviar correos o notificaciones push aquí
+            // Registrar en logs
+            Log::info('Notificaciones enviadas para la reserva ID: ' . $reserva->id, [
+                'participantes' => $participantesIds,
+                'reserva' => $reserva->toArray()
+            ]);
         } catch (\Exception $e) {
-            Log::error('Error al notificar participantes: ' . $e->getMessage());
+            Log::error('Error al notificar participantes: ' . $e->getMessage(), [
+                'reserva_id' => $reserva->id,
+                'error' => $e->getTraceAsString()
+            ]);
         }
     }
 
@@ -382,7 +412,16 @@ class ReservasController extends Controller
     public function show($id)
     {
         try {
-            $reserva = Reservas::with(['reserva_horarios', 'participantes_reservas'])->findOrFail($id);
+            $notification = DB::table('notifications')->where('id', $id)->first();
+
+            if ($notification) {
+                $idReserva = json_decode($notification->data, true)['reserva_id'];
+                $reserva = Reservas::with(['reserva_horarios', 'participantes_reservas'])->findOrFail($idReserva);
+                DB::table('notifications')->where('id', $id)->update(['read_at' => now()]);
+            } else {
+                $reserva = Reservas::with(['reserva_horarios', 'participantes_reservas'])->findOrFail($id);
+            }
+
             $salas = Salas::without('reservas')->get();
             $usuarios = User::pluck('nombre', 'id');
 
@@ -548,7 +587,6 @@ class ReservasController extends Controller
             return redirect()
                 ->route('reservas.index')
                 ->with('success', 'Reserva actualizada exitosamente!');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al actualizar la reserva: ' . $e->getMessage(), [
