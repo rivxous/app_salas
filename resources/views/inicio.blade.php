@@ -169,8 +169,8 @@
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
-                slotMinTime: '08:00:00',
-                slotMaxTime: '17:00:00',
+                slotMinTime: '07:30:00',
+                slotMaxTime: '18:00:00',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
