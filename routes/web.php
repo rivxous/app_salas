@@ -49,11 +49,13 @@ Route::prefix('/auth')->middleware('auth')->group(function () {
 
     Route::resource('salas', SalasController::class);
     Route::get('listar-todas-salas', [SalasController::class,'listarTodas']);
-    Route::post('buscar-salas-horios-disponibles', [ReservasController::class,'buscar_salas_horios_disponibles']);
+    Route::post('buscar-salas-horarios-disponibles', [ReservasController::class,'buscar_salas_horarios_disponibles'])
+        ->name('buscar_salas_horarios_disponibles');
     Route::resource('reservas', ReservasController::class);
-    Route::get('listar_reservas_calendario',[ReservasController::class,'listar_reservas_calendario'])->name('listar_reservas_calendario');
+    Route::get('listar_reservas_calendario',[ReservasController::class,'listar_reservas_calendario'])
+        ->name('listar_reservas_calendario');
 
-   Route::resource('reportes', ReportesController::class);
+    Route::resource('reportes', ReportesController::class);
 
     // WEB
     Route::prefix('/usuarios')->group(function () {

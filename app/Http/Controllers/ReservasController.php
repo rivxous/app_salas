@@ -20,6 +20,35 @@ use Illuminate\Support\Facades\Validator;
 class ReservasController extends Controller
 {
 
+    public function event($reservas)
+    {
+        $events = $reservas->flatMap(function ($reserva) {
+            return $reserva->reserva_horarios->map(function ($horario) use ($reserva) {
+                // Formatear correctamente la fecha/hora
+                $start = Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_inicio)
+                    ->setTimezone('UTC')
+                    ->toIso8601String();
+
+                $end = Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_fin)
+                    ->setTimezone('UTC')
+                    ->toIso8601String();
+
+                return [
+                    'title' => $reserva->titulo,
+                    'start' => $start,
+                    'end' => $end,
+                    'color' => '#ff5733',
+                    'description' => $reserva->descripcion,
+                    'extendedProps' => [
+                        'sala' => $reserva->sala->nombre,
+                        'organizador' => $reserva->usuario_creador_reserva->nombre
+                    ]
+                ];
+            });
+        });
+        return $events;
+    }
+
     // Método para obtener los eventos desde la base de datos
     public function listar_reservas_calendario()
     {
@@ -93,18 +122,16 @@ class ReservasController extends Controller
     }
 
 
-    public function buscar_salas_horios_disponibles(Request $request)
+    public function buscar_salas_horarios_disponibles(Request $request)
     {
         $request->validate([
             'id_sala' => 'required',
         ]);
         try {
-            $reservas = Reservas::where('fk_idSala', $request->id_sala)
-                ->get();
-
+            $reservas = Reservas::where('fk_idSala', $request->id_sala)->get();
 
             if (count($reservas) > 0) {
-                return $reservas;
+                return response()->json($reservas, 200);
             } else {
                 return response()->json(['msj' => 'No hay disponibilidad en la sala'], 404);
             }
@@ -117,8 +144,7 @@ class ReservasController extends Controller
     public function create()
     {
         $salas = Salas::with('horariosReservas')->get();
-        $usuarios = User::get()->pluck('full_name', 'id');
-//        return $usuarios;
+        $usuarios = User::pluck('nombre', 'id');
 //        return $salas;
 
         // Obtener días/horarios ocupados para cada sala
@@ -386,7 +412,7 @@ class ReservasController extends Controller
         try {
             $reserva = Reservas::with(['reserva_horarios', 'participantes_reservas'])->findOrFail($id);
             $salas = Salas::without('reservas')->get();
-            $usuarios = User::get()->pluck('full_name', 'id');
+            $usuarios = User::pluck('nombre', 'id');
 
             return view('reservas.edit', compact('reserva', 'salas', 'usuarios'));
         } catch (ModelNotFoundException $e) {
