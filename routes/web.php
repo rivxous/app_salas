@@ -26,6 +26,8 @@ Route::get('p2', [ReservasController::class, function () {
     return response()->json($reservas);
 
 }]);
+
+Route::get('/reserva/{id}' , [ReservasController::class , 'show_reserva'])->name('show.reserva');
 Route::get('p3', [ReservasController::class, function () {
     $salas = \App\Models\Salas::get();
     return response()->json($salas);

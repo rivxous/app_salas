@@ -13,6 +13,17 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
+    public function filterUser($query)
+    {
+        if($query === "todos"){
+            return User::get(['id' , 'nombre']);
+        }
+       
+        $usuarios = User::where('rol' , $query)->get(['id' , 'nombre']);
+
+    
+        return response()->json($usuarios);
+    }
     /**
      * Muestre una lista del recurso.
      */

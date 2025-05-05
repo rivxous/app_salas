@@ -19,9 +19,9 @@
         </li>
         <li><strong>Descripción:</strong> {{ $reserva->descripcion }}</li>
     </ul>
-    
+      
     <p>
-        <a href="{{ route('reservas.show', $reserva->id) }}">Ver detalles de la reserva</a>
+        <a href="{{ route('show.reserva', $reserva->id) }}">Ver detalles de la reserva</a>
     </p>
 </body>
 </html>

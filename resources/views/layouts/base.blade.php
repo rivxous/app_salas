@@ -115,7 +115,7 @@
             @auth
 
                 @php
-                    $notificacion = Auth::user()->notifications()->where('read_at', null)->get();
+                    $notificacion = Auth::user()->notifications()->get();
                 @endphp
                 <div class="dropdown">
 
@@ -134,13 +134,13 @@
                             <li>
                                 @switch($notificacion->data['type'])
                                     @case('nueva_reserva')
-                                        <a class="dropdown-item" href="{{ route('reservas.show', $notificacion->id) }}">
+                                        <a class="dropdown-item" href="{{ route('show.reserva', $notificacion->id) }}">
                                             {{ $notificacion->data['message'] }}
                                         </a>
                                     @break
 
                                     @default
-                                        <a class="dropdown-item" href="{{ route('reservas.show', $notificacion->id) }}">
+                                        <a class="dropdown-item" href="{{ route('show.reserva', $notificacion->id) }}">
                                             {{ $notificacion->data['message'] }}
                                         </a>
                                 @endswitch

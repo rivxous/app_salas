@@ -9,9 +9,9 @@ use Log;
 
 class InicioController extends Controller
 {
+    
     public function inicio()
     {
-       
         $salas  = $this->getSalasForCalendar();
         return view('inicio' , [
             'salas' => $salas
@@ -27,9 +27,7 @@ class InicioController extends Controller
         // 2. Transformar la colección usando el método map()
         $fullCalendarEvents = $salas->map(function ($sala) {
        
-            $hoy = Carbon::now()->format('Y-m-d');
-
-
+            $hoy = Carbon::now()->format(format: 'Y-m-d');
             // Combinar la fecha de hoy con los horarios de inicio y fin de la sala
             $startDateTime = $hoy . ' ' . $sala->horario_inicio;
             $endDateTime = $hoy . ' ' . $sala->horario_fin;
