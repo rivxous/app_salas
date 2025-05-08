@@ -124,7 +124,8 @@
                                     'onchange' => 'validarHorario()'
                                 ]) !!}
                                 <div id="horarioValidation" class="text-danger small d-none">
-                                    <i class="bi bi-exclamation-circle"></i> La hora final debe ser posterior a la hora de inicio.
+                                    <i class="bi bi-exclamation-circle"></i> La hora final debe ser posterior a la hora
+                                    de inicio.
                                 </div>
                                 @error('horario_fin')
                                 <div id="horarioFinError" class="invalid-feedback">
@@ -134,28 +135,51 @@
                             </div>
                         </div>
 
-                        <!-- Campo Atributos -->
+
+                        <!-- Campo Atributos (Sección modificada) -->
                         <div class="mb-3">
                             {!! Form::label('atributos', 'Atributos Disponibles', ['class' => 'form-label fw-bold']) !!}
-                            <div class="form-check">
-                                {!! Form::checkbox('atributos[]', 'Proyector', in_array('Proyector', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoProyector']) !!}
-                                {!! Form::label('atributoProyector', 'Proyector', ['class' => 'form-check-label']) !!}
+
+                            <!-- Mensaje de error -->
+                            @error('atributos')
+                            <div class="alert alert-danger mt-2">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
                             </div>
-                            <div class="form-check">
-                                {!! Form::checkbox('atributos[]', 'Monitor', in_array('Monitor', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoMonitor']) !!}
-                                {!! Form::label('atributoMonitor', 'Monitor', ['class' => 'form-check-label']) !!}
+                            @enderror
+
+                            <div class="alert alert-warning p-2">
+                                <i class="bi bi-info-circle-fill"></i> Debe seleccionar al menos un atributo
                             </div>
-                            <div class="form-check">
-                                {!! Form::checkbox('atributos[]', 'Aire Acondicionado', in_array('Aire Acondicionado', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoAire']) !!}
-                                {!! Form::label('atributoAire', 'Aire Acondicionado', ['class' => 'form-check-label']) !!}
-                            </div>
-                            <div class="form-check">
-                                {!! Form::checkbox('atributos[]', 'Wifi', in_array('Wifi', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoWifi']) !!}
-                                {!! Form::label('atributoWifi', 'Wifi', ['class' => 'form-check-label']) !!}
-                            </div>
-                            <div class="form-check">
-                                {!! Form::checkbox('atributos[]', 'Video Conferencia', in_array('Video Conferencia', $sala->atributos ?? []), ['class' => 'form-check-input', 'id' => 'atributoVideoConferencia']) !!}
-                                {!! Form::label('atributoVideoConferencia', 'Video Conferencia', ['class' => 'form-check-label']) !!}
+
+                            <div class="row g-3">
+                                @php
+                                    $atributosOptions = [
+                                        'Proyector' => 'Proyector',
+                                        'Monitor' => 'Monitor',
+                                        'Aire Acondicionado' => 'Aire Acondicionado',
+                                        'Wifi' => 'Wifi',
+                                        'Video Conferencia' => 'Video Conferencia',
+                                        'Bocinas' => 'Bocinas'
+                                    ];
+                                    $currentAtributos = old('atributos', $sala->atributos ?? []);
+                                @endphp
+
+                                @foreach($atributosOptions as $value => $label)
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            {!! Form::checkbox(
+                                                'atributos[]',
+                                                $value,
+                                                in_array($value, $currentAtributos),
+                                                [
+                                                    'class' => 'form-check-input' . ($errors->has('atributos') ? ' is-invalid' : ''),
+                                                    'id' => 'atributo' . Str::camel($value)
+                                                ]
+                                            ) !!}
+                                            {!! Form::label('atributo' . Str::camel($value), $label, ['class' => 'form-check-label']) !!}
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
@@ -182,27 +206,66 @@
 @section('scripts')
     <script>
         function validarHorario() {
-            const inicio = document.getElementById('horario_inicio').value;
-            const fin = document.getElementById('horario_fin').value;
+            const inicio = document.getElementById('horario_inicio');
+            const fin = document.getElementById('horario_fin');
             const mensajeError = document.getElementById('horarioValidation');
+            const minTime = '07:30';
+            const maxTime = '16:30';
 
-            if (inicio && fin && inicio >= fin) {
+            let errorMessages = [];
+
+            // Validar hora mínima
+            if (inicio.value && inicio.value < minTime) {
+                errorMessages.push('La hora de inicio no puede ser antes de las 7:30 AM');
+                inicio.classList.add('is-invalid');
+            } else {
+                inicio.classList.remove('is-invalid');
+            }
+
+            // Validar hora máxima
+            if (fin.value && fin.value > maxTime) {
+                errorMessages.push('La hora final no puede ser después de las 4:30 PM');
+                fin.classList.add('is-invalid');
+            } else {
+                fin.classList.remove('is-invalid');
+            }
+
+            // Validar que inicio sea antes de fin
+            if (inicio.value && fin.value && inicio.value >= fin.value) {
+                errorMessages.push('La hora final debe ser posterior a la hora de inicio');
+                fin.classList.add('is-invalid');
+            }
+
+            // Mostrar mensajes
+            if (errorMessages.length > 0) {
+                mensajeError.innerHTML = errorMessages.map(msg =>
+                    `<i class="bi bi-exclamation-circle"></i> ${msg}`
+                ).join('<br>');
                 mensajeError.classList.remove('d-none');
-                document.getElementById('horario_fin').classList.add('is-invalid');
             } else {
                 mensajeError.classList.add('d-none');
-                document.getElementById('horario_fin').classList.remove('is-invalid');
             }
         }
 
-        // Validación para ambos campos de horario
+        // Configurar restricciones al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeInputs = document.querySelectorAll('input[type="time"]');
+            timeInputs.forEach(input => {
+                input.min = '07:30';
+                input.max = '16:30';
+            });
+
+            // Validar inicialmente
+            validarHorario();
+        });
+
+        // Event listeners para validación en tiempo real
         document.getElementById('horario_inicio').addEventListener('change', validarHorario);
         document.getElementById('horario_fin').addEventListener('change', validarHorario);
 
         // Validación de Bootstrap
-        (function() {
+        (function () {
             'use strict'
-
             const forms = document.querySelectorAll('.needs-validation')
 
             Array.from(forms).forEach(form => {
@@ -211,7 +274,6 @@
                         event.preventDefault()
                         event.stopPropagation()
                     }
-
                     form.classList.add('was-validated')
                 }, false)
             })

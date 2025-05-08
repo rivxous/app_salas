@@ -46,7 +46,8 @@ class InicioController extends Controller
 
             // Decodificar el JSON de atributos (si está almacenado como string JSON)
             // El 'true' al final convierte el objeto JSON a un array asociativo de PHP
-            $atributosArray = json_decode($sala->atributos, true);
+            
+          //  $atributosArray = json_decode($sala->atributos, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $atributosArray = []; // Asignar un array vacío si hay un error de decodificación
               
@@ -65,7 +66,7 @@ class InicioController extends Controller
                     'ubicacion' => $sala->ubicacion,
                     'capacidad' => $sala->capacidad,
                     'status' => $sala->status,
-                    'atributos' => $atributosArray, // El array de atributos decodificado
+                    //'atributos' => $atributosArray, // El array de atributos decodificado
                     // Agrega cualquier otro dato de la sala que necesites en el frontend
                 ],
                

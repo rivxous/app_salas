@@ -3,6 +3,7 @@
 @section('title', 'Listado de Salas')
 
 @section('content')
+
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="text-primary">Listado de Salas QQGAS</h2>
@@ -63,7 +64,7 @@
                         <td>{{ $sala->horario_fin->format('h:i A') }}</td>
                         <td>
                             @if($sala->atributos)
-                                @foreach(json_decode($sala->atributos) as $atributo)
+                                @foreach($sala->atributos as $atributo)
                                     <span class="badge bg-info text-dark me-1">{{ $atributo }}</span>
                                 @endforeach
                             @else

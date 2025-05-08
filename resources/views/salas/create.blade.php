@@ -129,32 +129,49 @@
                         </div>
                     </div>
 
-                    <!-- Campo Atributos -->
+                    <!-- Campo Atributos - Corregido -->
                     <div class="mb-3">
                         {!! Form::label('atributos', 'Atributos Disponibles', ['class' => 'form-label fw-bold']) !!}
-                        <div class="form-check">
-                            {!! Form::checkbox('atributos[]', 'Proyector', false, ['class' => 'form-check-input', 'id' => 'atributoProyector']) !!}
-                            {!! Form::label('atributoProyector', 'Proyector', ['class' => 'form-check-label']) !!}
+                        <div class="alert alert-warning p-2">
+                            <i class="bi bi-info-circle-fill"></i> Debe seleccionar al menos un atributo
                         </div>
-                        <div class="form-check">
-                            {!! Form::checkbox('atributos[]', 'Monitor', false, ['class' => 'form-check-input', 'id' => 'atributoMonitor']) !!}
-                            {!! Form::label('atributoMonitor', 'Monitor', ['class' => 'form-check-label']) !!}
+
+                        <!-- Mensaje de error -->
+                        @error('atributos')
+                        <div class="alert alert-danger mt-2">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
                         </div>
-                        <div class="form-check">
-                            {!! Form::checkbox('atributos[]', 'Aire Acondicionado', false, ['class' => 'form-check-input', 'id' => 'atributoAire']) !!}
-                            {!! Form::label('atributoAire', 'Aire Acondicionado', ['class' => 'form-check-label']) !!}
-                        </div>
-                        <div class="form-check">
-                            {!! Form::checkbox('atributos[]', 'Wifi', false, ['class' => 'form-check-input', 'id' => 'atributoWifi']) !!}
-                            {!! Form::label('atributoWifi', 'Wifi', ['class' => 'form-check-label']) !!}
-                        </div>
-                        <div class="form-check">
-                            {!! Form::checkbox('atributos[]', 'Video Conferencia', false, ['class' => 'form-check-input', 'id' => 'atributoVideoConferencia']) !!}
-                            {!! Form::label('atributoVideoConferencia', 'Video Conferencia', ['class' => 'form-check-label']) !!}
-                        </div>
-                        <div class="form-check">
-                            {!! Form::checkbox('atributos[]', 'Bocinas', false, ['class' => 'form-check-input', 'id' => 'atributoBocinas']) !!}
-                            {!! Form::label('atributoBocinas', 'Bocinas', ['class' => 'form-check-label']) !!}
+                        @enderror
+
+                        <div class="row g-3" aria-describedby="atributosError">
+                            @php
+                                $atributosOptions = [
+                                    'Proyector' => 'Proyector',
+                                    'Monitor' => 'Monitor',
+                                    'Aire Acondicionado' => 'Aire Acondicionado',
+                                    'Wifi' => 'Wifi',
+                                    'Video Conferencia' => 'Video Conferencia',
+                                    'Bocinas' => 'Bocinas'
+                                ];
+                                $oldAtributos = old('atributos', []);
+                            @endphp
+
+                            @foreach($atributosOptions as $value => $label)
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        {!! Form::checkbox(
+                                            'atributos[]',
+                                            $value,
+                                            in_array($value, $oldAtributos),
+                                            [
+                                                'class' => 'form-check-input' . ($errors->has('atributos') ? ' is-invalid' : ''),
+                                                'id' => 'atributo' . Str::camel($value)
+                                            ]
+                                        ) !!}
+                                        {!! Form::label('atributo' . Str::camel($value), $label, ['class' => 'form-check-label']) !!}
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
 
@@ -178,40 +195,115 @@
 
 @section('scripts')
     <script>
-        function validarHorario() {
-            const inicio = document.getElementById('horario_inicio').value;
-            const fin = document.getElementById('horario_fin').value;
-            const mensajeError = document.getElementById('horarioValidation');
+        // Variables globales para horario de la sala
+        let currentHorarioInicio = '08:00';
+        let currentHorarioFin = '20:00';
 
-            if (inicio && fin && inicio >= fin) {
+        function validarHorarios() {
+            const mensajeError = document.getElementById('horarioValidation');
+            const gruposFecha = document.querySelectorAll('.fecha-grupo');
+            let errorMessages = [];
+
+            // Restablecer estados
+            gruposFecha.forEach(grupo => {
+                grupo.querySelectorAll('input').forEach(input => {
+                    input.classList.remove('is-invalid');
+                });
+            });
+
+            // Validar cada grupo de fecha/hora
+            gruposFecha.forEach((grupo, index) => {
+                const inicio = grupo.querySelector('input[name="horas_inicio[]"]');
+                const fin = grupo.querySelector('input[name="horas_fin[]"]');
+                const fecha = grupo.querySelector('input[name="fechas[]"]');
+
+                // Validar horario sala
+                if (inicio.value && inicio.value < currentHorarioInicio) {
+                    errorMessages.push(`Grupo ${index + 1}: Hora de inicio no puede ser antes de ${currentHorarioInicio}`);
+                    inicio.classList.add('is-invalid');
+                }
+
+                if (fin.value && fin.value > currentHorarioFin) {
+                    errorMessages.push(`Grupo ${index + 1}: Hora final no puede ser después de ${currentHorarioFin}`);
+                    fin.classList.add('is-invalid');
+                }
+
+                // Validar orden
+                if (inicio.value && fin.value && inicio.value >= fin.value) {
+                    errorMessages.push(`Grupo ${index + 1}: Hora final debe ser posterior a la de inicio`);
+                    fin.classList.add('is-invalid');
+                }
+
+                // Validar fecha requerida
+                if (!fecha.value) {
+                    errorMessages.push(`Grupo ${index + 1}: Fecha es requerida`);
+                    fecha.classList.add('is-invalid');
+                }
+            });
+
+            // Mostrar errores
+            if (errorMessages.length > 0) {
+                mensajeError.innerHTML = errorMessages.map(msg =>
+                    `<div class="text-danger small"><i class="bi bi-x-circle"></i> ${msg}</div>`
+                ).join('');
                 mensajeError.classList.remove('d-none');
-                document.getElementById('horario_fin').classList.add('is-invalid');
-            } else {
-                mensajeError.classList.add('d-none');
-                document.getElementById('horario_fin').classList.remove('is-invalid');
+                return false;
             }
+
+            mensajeError.classList.add('d-none');
+            return true;
         }
 
-        // Validación para ambos campos de horario
-        document.getElementById('horario_inicio').addEventListener('change', validarHorario);
-        document.getElementById('horario_fin').addEventListener('change', validarHorario);
+        // Actualizar horarios al seleccionar sala
+        function actualizarHorarioSala(horarioInicio, horarioFin) {
+            currentHorarioInicio = horarioInicio;
+            currentHorarioFin = horarioFin;
 
-        // Validación de Bootstrap
-        (function () {
+            // Actualizar restricciones en inputs
+            document.querySelectorAll('input[type="time"]').forEach(input => {
+                input.min = horarioInicio;
+                input.max = horarioFin;
+            });
+        }
+
+        // Configurar validación en tiempo real
+        document.addEventListener('input', function(e) {
+            if (e.target.matches('input[name="horas_inicio[]"], input[name="horas_fin[]"]')) {
+                validarHorarios();
+            }
+        });
+
+        // Validación de formulario
+        (function() {
             'use strict'
-
-            const forms = document.querySelectorAll('.needs-validation')
+            const forms = document.querySelectorAll('.needs-validation');
 
             Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
+                    const esValido = validarHorarios() && form.checkValidity();
+
+                    if (esValido) {
+                        // Mostrar confirmación con SweetAlert
+                        Swal.fire({
+                            title: '¿Confirmar reserva?',
+                            text: '¿Estás seguro de crear esta reserva?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, reservar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    } else {
+                        form.classList.add('was-validated');
+                    }
+                }, false);
+            });
+        })();
     </script>
 @endsection

@@ -29,7 +29,8 @@ class Salas extends Model
         'horario_inicio' => 'datetime:H:i',
         'horario_fin' => 'datetime:H:i',
         'capacidad' => 'integer',
-        'deleted_at' => 'datetime'
+        'deleted_at' => 'datetime',
+        'atributos' => 'array',
     ];
 
     protected $appends = [

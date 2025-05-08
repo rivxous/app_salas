@@ -184,7 +184,7 @@
                     }
                 },
                 locale: 'es',
-                timeZone: 'America/Lima',
+                timeZone: 'America/Caracas',
                 firstDay: 1,
                 navLinks: true,
                 nowIndicator: true,

@@ -19,7 +19,7 @@
     <!-- FullCalendar CSS -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.2/main.min.css" rel="stylesheet">
 
-    <!-- Estilos personalizados con temas -->
+       <!-- Estilos personalizados con temas -->
     <style>
         :root {
             --bg-primary: #f8f9fa;

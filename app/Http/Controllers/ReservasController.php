@@ -672,7 +672,7 @@ class ReservasController extends Controller
         } else {
             $reserva = Reservas::with(['reserva_horarios', 'participantes_reservas'])->findOrFail($id);
         }
-       
+      
         return view('reservas.show', compact('reserva'));
     }
     public function destroy($id)

@@ -41,6 +41,8 @@ class Reservas extends Model
     {
         return $this->hasMany(Participantes::class, 'fk_idReserva', 'id');
     }
+
+    
     public function tieneConflicto(string $fecha, string $horaInicio, string $horaFin): bool
     {
         return $this->reserva_horarios()

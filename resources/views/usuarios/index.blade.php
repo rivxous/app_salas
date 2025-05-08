@@ -26,6 +26,7 @@
         @endif
 
 
+
         <form id="sync-form" action="{{ route('users.sync') }}" method="POST" style="display: none;">
             @csrf
         </form>
