@@ -19,10 +19,12 @@
                 @endforeach
             </div>
         @endif
+        @if (Auth::user()->rol == 'admin')
+            <div class="d-flex justify-content-end mb-3">
+                <button type="button" class="btn btn-primary" onclick="confirmSync()">Sincronizar Usuarios</button>
+            </div>
+        @endif
 
-        <div class="d-flex justify-content-end mb-3">
-            <button type="button" class="btn btn-success" onclick="confirmSync()">Sincronizar LDAP</button>
-        </div>
 
 
         <form id="sync-form" action="{{ route('users.sync') }}" method="POST" style="display: none;">
@@ -32,37 +34,46 @@
         <div class="table-responsive">
             <table class="table table-hover shadow-sm">
                 <thead class="table-dark">
-                <tr>
-                    <th>Usuario</th>
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Unidad Funcional</th>
-                    <th>Email</th>
-                    <th>Acciones</th>
-                </tr>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Unidad Funcional</th>
+                        <th>Email</th>
+                        @if (Auth::user()->rol == 'admin')
+                            <th>Acciones</th>
+                        @endif
+
+                    </tr>
                 </thead>
                 <tbody>
-                @foreach ($users as $user)
-                    <tr>
-                        <td class="fw-bold text-uppercase">{{ $user->username }}</td>
-                        <td>{{ $user->nombre }}</td>
-                        <td>{{ $user->apellido }}</td>
-                        <td>{{ $user->unidad_funcinal }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>
-                            @if($user->id)
-                                <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $user->id }})">Eliminar</button>
+                    @foreach ($users as $user)
+                        <tr>
+                            <td class="fw-bold text-uppercase">{{ $user->username }}</td>
+                            <td>{{ $user->nombre }}</td>
+                            <td>{{ $user->apellido }}</td>
+                            <td>{{ $user->unidad_funcinal }}</td>
+                            <td>{{ $user->email }}</td>
+                            @if (Auth::user()->rol == 'admin')
+                                <td>
+                                    @if ($user->id)
+                                        <button class="btn btn-danger btn-sm"
+                                            onclick="confirmDelete({{ $user->id }})">Eliminar</button>
 
-                                <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', ['id' => $user->id]) }}" method="POST" style="display: none;">
-                                    @csrf
-                                    @method('DELETE')
-                                </form>
-                            @else
-                                <span class="text-muted">LDAP</span>
+                                        <form id="delete-form-{{ $user->id }}"
+                                            action="{{ route('users.destroy', ['id' => $user->id]) }}" method="POST"
+                                            style="display: none;">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
+                                    @else
+                                        <span class="text-muted">LDAP</span>
+                                    @endif
+                                </td>
                             @endif
-                        </td>
-                    </tr>
-                @endforeach
+
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>

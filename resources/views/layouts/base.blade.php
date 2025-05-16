@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>@yield('title','Sistema de Reserva de Salas')</title>
+    <title>@yield('title', 'Sistema de Reserva de Salas')</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -44,13 +45,17 @@
             transition: all 0.3s ease;
         }
 
-        .card, .form-control, .form-select, .input-group-text {
+        .card,
+        .form-control,
+        .form-select,
+        .input-group-text {
             background-color: var(--bg-card);
             color: var(--text-primary);
             border-color: var(--border-color);
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             background-color: var(--bg-card);
             color: var(--text-primary);
             border-color: #86b7fe;
@@ -91,92 +96,134 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 </head>
+
 <body class="{{ session('theme', 'light-theme') }}">
 
-<!-- Barra superior con botones -->
-<div class="container-fluid">
-    <div class="d-flex justify-content-between mt-3 me-3">
-        <!-- Botón para cambiar tema -->
-        <button id="toggle-theme" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-moon-fill"></i> Tema Oscuro
-        </button>
-        <!-- Botón inicio -->
-        <a class="btn btn-sm btn-outline-secondary" href="{{route("/")}}">
-            <i class="bi bi-house-check"></i> Home
-        </a>
-
-        <!-- Botón de Cerrar Sesión -->
-        @auth()
-            <div>{{Auth::user()->full_name}}</div>
-            <button id="logout-button" class="btn btn-sm btn-danger">
-                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+    <!-- Barra superior con botones -->
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between mt-3 me-3">
+            <!-- Botón para cambiar tema -->
+            <button id="toggle-theme" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-moon-fill"></i> Tema Oscuro
             </button>
-        @endauth
+            <!-- Botón inicio -->
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('/') }}">
+                <i class="bi bi-house-check"></i> Home
+            </a>
+
+
+            @auth
+
+                @php
+                    $notificacion = Auth::user()->notifications()->get();
+                @endphp
+                <div class="dropdown">
+
+                    <a class="btn btn-sm  " href="{{ route('/') }}" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                            fill="{{ $notificacion->count() > 0 ? '#922b21' : '#3498db' }}" class="bi bi-bell-fill"
+                            viewBox="0 0 16 16">
+                            <path
+                                d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5 5 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901" />
+                        </svg>
+                        <div style="position: absolute; top: 0; left: 0;"> {{ $notificacion->count() }}</div>
+                    </a>
+                    <ul class="dropdown-menu">
+                        @foreach ($notificacion as $notificacion)
+                            <li>
+                                @switch($notificacion->data['type'])
+                                    @case('nueva_reserva')
+                                        <a class="dropdown-item" href="{{ route('show.reserva', $notificacion->id) }}">
+                                            {{ $notificacion->data['message'] }}
+                                        </a>
+                                    @break
+
+                                    @default
+                                        <a class="dropdown-item" href="{{ route('show.reserva', $notificacion->id) }}">
+                                            {{ $notificacion->data['message'] }}
+                                        </a>
+                                @endswitch
+
+
+                            </li>
+                        @endforeach
+
+                    </ul>
+                </div>
+            @endauth
+            <!-- Botón de Cerrar Sesión -->
+            @auth()
+                <div>{{ Auth::user()->full_name }}</div>
+                <button id="logout-button" class="btn btn-sm btn-danger">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                </button>
+            @endauth
+        </div>
     </div>
-</div>
 
-<!-- Contenido principal -->
-<div class="container py-4">
-    @yield('content')
-</div>
-
+    <!-- Contenido principal -->
+    <div class="container py-4">
+        @yield('content')
+    </div>
 
 
 
-<!-- Scripts globales -->
-<script>
-    // Cambio de tema
-    document.getElementById('toggle-theme').addEventListener('click', function() {
-        const body = document.body;
-        const isDark = body.classList.contains('dark-theme');
-        const icon = this.querySelector('i');
 
-        if(isDark) {
-            body.classList.remove('dark-theme');
-            localStorage.setItem('theme', 'light-theme');
-            icon.className = 'bi bi-moon-fill';
-            this.innerHTML = '<i class="bi bi-moon-fill"></i> Tema Oscuro';
-        } else {
-            body.classList.add('dark-theme');
-            localStorage.setItem('theme', 'dark-theme');
-            icon.className = 'bi bi-sun-fill';
-            this.innerHTML = '<i class="bi bi-sun-fill"></i> Tema Claro';
-        }
-    });
+    <!-- Scripts globales -->
+    <script>
+        // Cambio de tema
+        document.getElementById('toggle-theme').addEventListener('click', function() {
+            const body = document.body;
+            const isDark = body.classList.contains('dark-theme');
+            const icon = this.querySelector('i');
 
-    // Cargar tema guardado al iniciar
-    document.addEventListener('DOMContentLoaded', function() {
-        const savedTheme = localStorage.getItem('theme') || 'light-theme';
-        document.body.className = savedTheme;
-
-        // Actualizar texto del botón
-        const themeButton = document.getElementById('toggle-theme');
-        if(savedTheme === 'dark-theme') {
-            themeButton.innerHTML = '<i class="bi bi-sun-fill"></i> Tema Claro';
-        }
-    });
-
-    // Cierre de sesión con confirmación (SweetAlert2)
-    document.getElementById('logout-button')?.addEventListener('click', function() {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Se cerrará tu sesión actual.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, cerrar sesión',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "{{ route('logout') }}";
+            if (isDark) {
+                body.classList.remove('dark-theme');
+                localStorage.setItem('theme', 'light-theme');
+                icon.className = 'bi bi-moon-fill';
+                this.innerHTML = '<i class="bi bi-moon-fill"></i> Tema Oscuro';
+            } else {
+                body.classList.add('dark-theme');
+                localStorage.setItem('theme', 'dark-theme');
+                icon.className = 'bi bi-sun-fill';
+                this.innerHTML = '<i class="bi bi-sun-fill"></i> Tema Claro';
             }
         });
-    });
 
-</script>
+        // Cargar tema guardado al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('theme') || 'light-theme';
+            document.body.className = savedTheme;
 
-@yield('scripts')
+            // Actualizar texto del botón
+            const themeButton = document.getElementById('toggle-theme');
+            if (savedTheme === 'dark-theme') {
+                themeButton.innerHTML = '<i class="bi bi-sun-fill"></i> Tema Claro';
+            }
+        });
+
+        // Cierre de sesión con confirmación (SweetAlert2)
+        document.getElementById('logout-button')?.addEventListener('click', function() {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Se cerrará tu sesión actual.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{{ route('logout') }}";
+                }
+            });
+        });
+    </script>
+
+    @yield('scripts')
 
 </body>
+
 </html>

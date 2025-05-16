@@ -2,7 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Models\User;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ReservasController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -16,4 +18,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+});
+Route::post('buscar-salas-horios-disponibles', [ReservasController::class,'buscar_salas_horios_disponibles'])->name('buscar_salas_horios_disponibles');
+Route::get("/usuario/{query}" , [ UserController::class , 'filterUser'])->name('filterUser');
+
+Route::get('test' , function(){
+    return ldap_connect(env('LDAP_HOST'));
 });

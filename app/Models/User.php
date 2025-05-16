@@ -146,6 +146,10 @@ class User extends Authenticatable
         return $this;
     }
 
+    public function routeNotificationForMail()
+    {
+        return $this->email;
+    }
 //    public function getAuthIdentifierName()
 //    {
 //        return 'id';
