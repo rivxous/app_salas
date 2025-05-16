@@ -19,7 +19,9 @@ class HorariosReservas extends Model
         'fk_idSala',
     ];
     protected $casts = [
-        'fecha' => 'datetime',
+        'fecha' => 'datetime:Y-m-d',
+        'hora_inicio' => 'datetime:H:i',
+        'hora_fin' => 'datetime:H:i'
     ];
     public function reserva()
     {

@@ -126,18 +126,44 @@ class ReservasController extends Controller
     {
         $request->validate([
             'id_sala' => 'required',
+            'fechas' => 'sometimes|required|date',
+            'horas_inicio' => 'sometimes|required|date_format:H:i',
+            'horas_fin' => 'sometimes|required|date_format:H:i|after:horas_inicio',
         ]);
-        try {
-            $reservas = Reservas::where('fk_idSala', $request->id_sala)->get();
 
-            if (count($reservas) > 0) {
-                return response()->json($reservas, 200);
-            } else {
-                return response()->json(['msj' => 'No hay disponibilidad en la sala'], 404);
+        try {
+            $reservas = Reservas::where('fk_idSala', $request->id_sala)
+                ->with(['reserva_horarios', 'sala', 'usuario_creador_reserva', 'participantes_reservas.usuario']);
+
+            if ($request->has(['fechas', 'horas_inicio', 'horas_fin'])) {
+                $fecha = $request->fechas;
+                $horaInicio = $request->horas_inicio;
+                $horaFin = $request->horas_fin;
+
+                $reservas->whereHas('reserva_horarios', function ($query) use ($fecha, $horaInicio, $horaFin) {
+                    $query->where('fecha', $fecha)
+                        ->where(function($q) use ($horaInicio, $horaFin) {
+                            $q->whereBetween('hora_inicio', [$horaInicio, $horaFin])
+                                ->orWhereBetween('hora_fin', [$horaInicio, $horaFin])
+                                ->orWhere(function($subQ) use ($horaInicio, $horaFin) {
+                                    $subQ->where('hora_inicio', '<=', $horaInicio)
+                                        ->where('hora_fin', '>=', $horaFin);
+                                });
+                        });
+                });
             }
+
+            $reservas = $reservas->get();
+
+            if ($reservas->isEmpty()) {
+                return response()->json(['msj' => 'No hay reservas que coincidan con los criterios'], 404);
+            }
+
+            return response()->json($reservas, 200);
+
         } catch (\Exception $e) {
             Log::error('Error en buscar_salas_por_ubicacion@ReservasController: ' . $e->getMessage());
-            return redirect()->back()->withErrors(['error' => 'No hay disponibilidad en la sala']);
+            return response()->json(['error' => 'Error al procesar la solicitud'], 500);
         }
     }
 

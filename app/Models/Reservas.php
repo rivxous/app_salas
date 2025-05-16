@@ -23,6 +23,18 @@ class Reservas extends Model
         'fk_idUsuario',
     ];
 
+    public static function salaDisponible($salaId, $fecha, $horaInicio, $horaFin)
+    {
+        return !HorariosReservas::where('fk_idSala', $salaId)
+            ->where('fecha', $fecha)
+            ->where(function($query) use ($horaInicio, $horaFin) {
+                $query->where(function($q) use ($horaInicio, $horaFin) {
+                    $q->where('hora_inicio', '<', $horaFin)
+                        ->where('hora_fin', '>', $horaInicio);
+                });
+            })
+            ->exists();
+    }
     public function usuario_creador_reserva()
     {
         return $this->hasOne(User::class, 'id', 'fk_idUsuario')->activos();
@@ -42,7 +54,7 @@ class Reservas extends Model
         return $this->hasMany(Participantes::class, 'fk_idReserva', 'id');
     }
 
-    
+
     public function tieneConflicto(string $fecha, string $horaInicio, string $horaFin): bool
     {
         return $this->reserva_horarios()

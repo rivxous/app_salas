@@ -34,7 +34,19 @@ class User extends Authenticatable
     protected $hidden = [
         'remember_token',
     ];
-
+// Añade este método al modelo User
+    public function tieneConflictoHorario($fecha, $horaInicio, $horaFin)
+    {
+        return Participantes::where('fk_idUsuario', $this->id)
+            ->whereHas('reserva.reserva_horarios', function($query) use ($fecha, $horaInicio, $horaFin) {
+                $query->where('fecha', $fecha)
+                    ->where(function($q) use ($horaInicio, $horaFin) {
+                        $q->where('hora_inicio', '<', $horaFin)
+                            ->where('hora_fin', '>', $horaInicio);
+                    });
+            })
+            ->exists();
+    }
     public function scopeActivos($query)
     {
         return $query->where('estatus', 1);

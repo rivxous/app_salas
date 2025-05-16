@@ -43,7 +43,8 @@ Route::post('user/nuevo', [UserController::class, 'store'])->name('guardar_usuar
 
 //ruta LDAP; sincronización usuarios
 Route::post('/users/sync', [UserController::class, 'sync'])->name('users.sync');
-
+Route::get('/reservas/calendario/{sala}', [ReservasController::class, 'getEventosCalendario']);
+Route::post('/reservas/validar', [ReservasController::class, 'validarReserva']);
 Route::get('/', [InicioController::class, 'inicio'])->name('/')->middleware('auth');
 Route::prefix('/auth')->middleware('auth')->group(function () {
 
