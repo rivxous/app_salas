@@ -19,7 +19,7 @@ class UserController extends Controller
             return User::get(['id' , 'nombre']);
         }
        
-        $usuarios = User::where('rol' , $query)->get(['id' , 'nombre']);
+        $usuarios = User::where('unidad_funcional' , $query)->get(['id' , 'nombre']);
 
     
         return response()->json($usuarios);

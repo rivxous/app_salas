@@ -4,12 +4,131 @@
 
 @section('content')
     <div class="container">
-        <div class="row">
+        <div class="row mb-4">
             <div class="col-md-8">
-                <canvas id="lineChart" height="100"></canvas>
+                <canvas id="lineChart" height="300"></canvas>
             </div>
             <div class="col-md-4">
-                <canvas id="pieChart"></canvas>
+                <canvas id="pieChart" height="300"></canvas>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Sala Más Reservada</h2>
+                        @if($salaMasReservada->count() > 0)
+                            <ul class="list-group list-group-flush">
+                                @foreach($salaMasReservada as $sala)
+                                    <li class="list-group-item">
+                                        <strong>{{ $sala->sala->nombre }}:</strong> {{ $sala->total_reservas }} reservas
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="card-text">No hay datos disponibles.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Usuarios con Más Reservas</h2>
+                        @if($usuariosMasReservas->count() > 0)
+                            <ul class="list-group list-group-flush">
+                                @foreach($usuariosMasReservas as $usuario)
+                                    <li class="list-group-item">
+                                         <strong>{{ $usuario->usuario_creador_reserva->name }}:</strong> {{ $usuario->total_reservas }} reservas
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="card-text">No hay datos disponibles.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Departamentos con Más Reservas</h2>
+                        @if($departamentosMasReservas->count() > 0)
+                            <ul class="list-group list-group-flush">
+                                @foreach($departamentosMasReservas as $departamento)
+                                    <li class="list-group-item">
+                                        <strong>{{ $departamento->departamento }}:</strong> {{ $departamento->total_reservas }} reservas
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="card-text">No hay datos disponibles.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Porcentaje de Reservas Semanal</h2>
+                        @if($reservasSemanal->count() > 0)
+                            <ul class="list-group list-group-flush">
+                                @foreach($reservasSemanal as $reserva)
+                                    <li class="list-group-item">
+                                        Semana: {{ $reserva->semana }} - Total: {{ $reserva->total_reservas }} - Porcentaje: {{ $reserva->porcentaje }}%
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="card-text">No hay datos disponibles.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Porcentaje de Reservas Mensual</h2>
+                        @if($reservasMensual->count() > 0)
+                            <ul class="list-group list-group-flush">
+                                @foreach($reservasMensual as $reserva)
+                                     <li class="list-group-item">
+                                        Mes: {{ $reserva->mes }} - Total: {{ $reserva->total_reservas }} - Porcentaje: {{ $reserva->porcentaje }}%
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="card-text">No hay datos disponibles.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Porcentaje de Reservas Anual</h2>
+                        @if($reservasAnual->count() > 0)
+                            <ul class="list-group list-group-flush">
+                                @foreach($reservasAnual as $reserva)
+                                    <li class="list-group-item">
+                                         Año: {{ $reserva->año }} - Total: {{ $reserva->total_reservas }} - Porcentaje: {{ $reserva->porcentaje }}%
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="card-text">No hay datos disponibles.</p>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -29,7 +148,7 @@
                     },
                     title: {
                         display: true,
-                        text: 'Chart.js Bar Chart'
+                        text: 'Cantidad de Reservas'
                     }
                 },
                 scales: {

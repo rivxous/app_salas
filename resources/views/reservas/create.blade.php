@@ -176,15 +176,20 @@
                                     </div>
                                 @enderror
                             </div>
+                            @php
+                                    use App\Models\UnidadFuncional;
+                                    $unidad_funcional = [];
+                                    foreach(UnidadFuncional::all() as $unidad)
+                                    {
+                                        $unidad_funcional[$unidad->nombre] = $unidad->nombre;
+                                    }
+                            @endphp
                             <div class="mb-3">
-                                {!! Form::label('filtro_rol', 'Filtrar por Rol', ['class' => 'form-label fw-bold']) !!}
+                                {!! Form::label('filtro_rol', 'Filtrar por unidad funcional', ['class' => 'form-label fw-bold']) !!}
                                 {!! Form::select(
                                     'filtro_rol',
-                                    [
-                                        'admin' => 'admin',
-                                        'user' => 'user',
-                                        'todos' => 'Todos los usuarios',
-                                    ],
+                                  
+                                    $unidad_funcional,
                                     null,
                                     [
                                         'id' => 'filtro_rol',

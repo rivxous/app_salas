@@ -54,7 +54,6 @@
                 </thead>
                 <tbody>
                 @foreach ($salas as $sala)
-{{--                    {{dd($sala->horario_inicio )}}--}}
                     <tr>
                         <td class="fw-bold text-uppercase">{{ $sala->nombre }}</td>
                         <td>{{ $sala->ubicacion }}</td>
@@ -64,7 +63,7 @@
                         <td>{{ $sala->horario_fin->format('h:i A') }}</td>
                         <td>
                             @if($sala->atributos)
-                                @foreach($sala->atributos as $atributo)
+                                @foreach( json_decode($sala->atributos) as $atributo)
                                     <span class="badge bg-info text-dark me-1">{{ $atributo }}</span>
                                 @endforeach
                             @else

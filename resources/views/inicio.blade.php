@@ -25,7 +25,16 @@
                         </div>
                     </div>
 
-
+                      <!-- Módulo de Reservas -->
+                        <div class="nav-item">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Reservas</h5>
+                                    <p class="card-text">Visualización de reservas actuales.</p>
+                                    <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
+                                </div>
+                            </div>
+                        </div>
                     @if (Auth::user()->rol == 'admin')
                         <!-- Módulo de Salas -->
                         <div class="nav-item mx-3">
@@ -37,16 +46,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Módulo de Reservas -->
-                        <div class="nav-item">
-                            <div class="card shadow-sm border-0">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Reservas</h5>
-                                    <p class="card-text">Visualización de reservas actuales.</p>
-                                    <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
-                                </div>
-                            </div>
-                        </div>
+                      
                     @endif
 
 
@@ -71,16 +71,7 @@
                     <h1 class="h2">
                         <i class="fas fa-calendar-day me-2"></i>Calendario de Reservas
                     </h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-print"></i> Imprimir
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-success">
-                                <i class="fas fa-file-export"></i> Exportar
-                            </button>
-                        </div>
-                    </div>
+                    
                 </div>
 
                 <!-- Calendario -->
@@ -200,14 +191,16 @@
                     hour12: false
                 },
                 eventDidMount: function(info) {
+                    console.log(info.event)
                     const content = `
-            <div class="popover-content-custom">
-                <p class="mb-1"><strong>${info.event.title}</strong></p>
-                <p class="mb-1">${info.event.extendedProps.description}</p>
-                <hr class="my-1">
-                <small>Sala: ${info.event.extendedProps.sala}</small><br>
-                <small>Organizador: ${info.event.extendedProps.organizador}</small>
-            </div>
+                        <div class="popover-content-custom">
+                            <p class="mb-1"><strong> Hora: ${info.timeText}</strong></p>
+                            <p class="mb-1"><strong>Titulo: ${info.event.title}</strong></p>
+                            <p class="mb-1">Descripción:${info.event.extendedProps.description}</p>
+                            <hr class="my-1">
+                            <small>Sala: ${info.event.extendedProps.sala}</small><br>
+                            <small>Organizador: ${info.event.extendedProps.organizador}</small>
+                        </div>
         `;
 
                     new bootstrap.Popover(info.el, {
