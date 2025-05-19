@@ -45,8 +45,11 @@ Route::post('user/nuevo', [UserController::class, 'store'])->name('guardar_usuar
 
 //ruta LDAP; sincronización usuarios
 Route::post('/users/sync', [UserController::class, 'sync'])->name('users.sync');
-
+Route::get('/reservas/calendario/{sala}', [ReservasController::class, 'getEventosCalendario']);
+Route::post('/reservas/validar', [ReservasController::class, 'validarReserva']);
 Route::get('/', [InicioController::class, 'inicio'])->name('/')->middleware('auth');
+  Route::get('listar_reservas_calendario',[ReservasController::class,'listar_reservas_calendario'])
+        ->name('listar_reservas_calendario');
 Route::prefix('/auth')->middleware('auth')->group(function () {
 
     Route::resource('salas', SalasController::class); 
@@ -54,8 +57,7 @@ Route::prefix('/auth')->middleware('auth')->group(function () {
     Route::post('buscar-salas-horarios-disponibles', [ReservasController::class,'buscar_salas_horarios_disponibles'])
         ->name('buscar_salas_horarios_disponibles');
     Route::resource('reservas', ReservasController::class);
-    Route::get('listar_reservas_calendario',[ReservasController::class,'listar_reservas_calendario'])
-        ->name('listar_reservas_calendario');
+  
 
     Route::resource('reportes', ReportesController::class);
 

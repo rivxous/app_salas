@@ -25,16 +25,16 @@
                         </div>
                     </div>
 
-                      <!-- Módulo de Reservas -->
-                        <div class="nav-item">
-                            <div class="card shadow-sm border-0">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Reservas</h5>
-                                    <p class="card-text">Visualización de reservas actuales.</p>
-                                    <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
-                                </div>
+                    <!-- Módulo de Reservas -->
+                    <div class="nav-item">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Reservas</h5>
+                                <p class="card-text">Visualización de reservas actuales.</p>
+                                <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
                             </div>
                         </div>
+                    </div>
                     @if (Auth::user()->rol == 'admin')
                         <!-- Módulo de Salas -->
                         <div class="nav-item mx-3">
@@ -46,7 +46,6 @@
                                 </div>
                             </div>
                         </div>
-                      
                     @endif
 
 
@@ -65,18 +64,33 @@
 
 
             <!-- Contenido Principal -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <main class=" container-fluid">
                 <div
                     class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
                         <i class="fas fa-calendar-day me-2"></i>Calendario de Reservas
                     </h1>
-                    
+
                 </div>
 
                 <!-- Calendario -->
-                <div class="container-fluid">
-                    <div id="calendar" class="shadow-lg bg-white p-3 rounded-3"></div>
+                <div class="container-fluid row">
+                    <div class="container-fluid col-md-6">
+                        <div id="calendar" class="shadow-lg bg-white p-3 rounded-3"></div>
+                    </div>
+                    <div class="container-fluid col-md-6 citas">
+                        @foreach ($eventos as $evento)
+                            <div class="container-fluid">
+                                <p>Titulo : {{ $evento['title'] }}</p>
+                                <p>Hora inicio : {{ $evento['start'] }}</p>
+                                <p>Hora fin {{ $evento['end'] }}</p>
+                            </div>
+                            <div class="" style="
+                             border-bottom: solid 1px black;
+
+                            "></div>
+                        @endforeach
+                    </div>
                 </div>
             </main>
         </div>
@@ -84,6 +98,12 @@
 
     <!-- Estilos Personalizados -->
     <style>
+        .citas {
+            border: solid 1px #2c3e50;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
         /* En tu archivo CSS */
         .fc-event-custom {
             border-radius: 4px;
