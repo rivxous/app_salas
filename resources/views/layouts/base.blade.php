@@ -79,7 +79,9 @@
         .card-header {
             border-bottom-color: var(--border-color);
         }
+
     </style>
+    @yield('styles')
 
     <!-- Librerías JS -->
     <script src="{{ asset('js/jquery.min.js') }}"></script>

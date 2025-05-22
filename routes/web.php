@@ -52,12 +52,12 @@ Route::get('/', [InicioController::class, 'inicio'])->name('/')->middleware('aut
         ->name('listar_reservas_calendario');
 Route::prefix('/auth')->middleware('auth')->group(function () {
 
-    Route::resource('salas', SalasController::class); 
+    Route::resource('salas', SalasController::class);
     Route::get('listar-todas-salas', [SalasController::class,'listarTodas']);
-    Route::post('buscar-salas-horarios-disponibles', [ReservasController::class,'buscar_salas_horarios_disponibles'])
-        ->name('buscar_salas_horarios_disponibles');
+    Route::post('buscar-salas-horarios-disponibles', [ReservasController::class,'buscar_salas_horarios_disponibles'])->name('buscar_salas_horarios_disponibles');
+    Route::post('/verificar-participantes', [ReservasController::class, 'verificarParticipantes'])->name('verificar.participantes');
     Route::resource('reservas', ReservasController::class);
-  
+
 
     Route::resource('reportes', ReportesController::class);
 
@@ -68,7 +68,7 @@ Route::prefix('/auth')->middleware('auth')->group(function () {
         Route::get('/{id}', [UserController::class, 'show'])->name('usuarios.show');
         Route::get('/editar/{id}', [UserController::class, 'edit'])->name('usuarios.edit');
     });
-    //reportes index 
+    //reportes index
     Route::prefix('/reportes')->group(function () {
         Route::get('/' , [ReporteController::class ,'index'])->name("reportes.index");
     });

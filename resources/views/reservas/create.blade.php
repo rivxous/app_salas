@@ -1,6 +1,31 @@
 @extends('layouts.base')
 
 @section('title', 'Creación de Reservas')
+@section('styles')
+    <style>
+        .disponibilidad-msg {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .disponibilidad-msg i {
+            margin-right: 0.25rem;
+        }
+
+        .fc-event-custom {
+            cursor: pointer;
+        }
+
+        .popover-content-custom {
+            max-width: 300px;
+        }
+
+        #calendario {
+            position: sticky;
+            top: 20px;
+        }
+    </style>
+@endsection
 
 @section('content')
     <div class="container">
@@ -115,7 +140,8 @@
                                             {!! Form::time('horas_fin[]', null, ['class' => 'form-control', 'required' => true]) !!}
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
-                                            <button type="button" class="btn btn-sm btn-danger eliminarFecha" disabled>
+                                            <button type="button" class="btn btn-sm btn-danger eliminarFecha"
+                                                    disabled>
                                                 <i class="bi bi-trash"></i> Eliminar
                                             </button>
                                         </div>
@@ -168,6 +194,8 @@
                                 </div>
                                 @enderror
                             </div>
+                            <!-- Contenedor para conflictos de participantes -->
+                            <div id="conflictos-participantes" class="mt-3"></div>
                         </div>
 
                         <!-- Botones -->
@@ -200,31 +228,6 @@
     </div>
 @endsection
 
-@section('styles')
-    <style>
-        .disponibilidad-msg {
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-
-        .disponibilidad-msg i {
-            margin-right: 0.25rem;
-        }
-
-        .fc-event-custom {
-            cursor: pointer;
-        }
-
-        .popover-content-custom {
-            max-width: 300px;
-        }
-
-        #calendario {
-            position: sticky;
-            top: 20px;
-        }
-    </style>
-@endsection
 
 @section('scripts')
     <script>
@@ -273,7 +276,7 @@
                     const fecha = fechaCompleta.split("T")[0];
 
                     // Buscar el primer grupo de fecha vacío o crear uno nuevo
-                    let grupoVacio = $('.fecha-grupo').filter(function() {
+                    let grupoVacio = $('.fecha-grupo').filter(function () {
                         return $(this).find('input[name="fechas[]"]').val() === '' &&
                             $(this).find('input[name="horas_inicio[]"]').val() === '' &&
                             $(this).find('input[name="horas_fin[]"]').val() === '';
@@ -311,7 +314,7 @@
                         }
                     }
                 },
-                eventDidMount: function(info) {
+                eventDidMount: function (info) {
                     const formatoFechaHora = {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -491,7 +494,7 @@
             });
 
             // Validación automática cuando cambian fecha o hora inicio
-            $(document).on('change', 'input[name="fechas[]"], input[name="horas_inicio[]"]', function() {
+            $(document).on('change', 'input[name="fechas[]"], input[name="horas_inicio[]"]', function () {
                 const $grupo = $(this).closest('.fecha-grupo');
                 const salaId = $('#fk_idSala').val();
                 const fecha = $grupo.find('input[name="fechas[]"]').val();
@@ -633,7 +636,7 @@
             }
 
             // Botón para verificar todos los horarios
-            $verificarDisponibilidadBtn.on('click', async function() {
+            $verificarDisponibilidadBtn.on('click', async function () {
                 const gruposFecha = $('.fecha-grupo');
                 let todosDisponibles = true;
                 let algunCampoIncompleto = false;
@@ -698,7 +701,7 @@
 
                 const form = document.getElementById('reservaForm');
 
-                form.addEventListener('submit', async function(event) {
+                form.addEventListener('submit', async function (event) {
                     event.preventDefault();
                     event.stopPropagation();
 
@@ -761,5 +764,62 @@
                 }, false);
             })();
         });
+        // Agregar este evento para validar participantes
+        $('#fk_participantes').on('change', async function () {
+            const participantes = $(this).val();
+            const salaId = $('#fk_idSala').val();
+            const fechas = $('input[name="fechas[]"]').map((i, e) => $(e).val()).get();
+            const horasInicio = $('input[name="horas_inicio[]"]').map((i, e) => $(e).val()).get();
+            const horasFin = $('input[name="horas_fin[]"]').map((i, e) => $(e).val()).get();
+
+            // Verificar para cada grupo de fecha/hora
+            for (let i = 0; i < fechas.length; i++) {
+                const fecha = fechas[i];
+                const horaInicio = horasInicio[i];
+                const horaFin = horasFin[i];
+
+                if (fecha && horaInicio && horaFin && participantes && participantes.length > 0) {
+                    const response = await fetch("{{ route('verificar.participantes') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            fecha: fecha,
+                            hora_inicio: horaInicio,
+                            hora_fin: horaFin,
+                            participantes: participantes
+                        })
+                    });
+
+                    const data = await response.json();
+                    mostrarConflictosParticipantes(data.conflictos);
+                }
+            }
+        });
+
+        // Función para mostrar conflictos de participantes
+        function mostrarConflictosParticipantes(conflictos) {
+            const $container = $('#conflictos-participantes');
+            $container.empty();
+
+            if (conflictos.length > 0) {
+                let html = '<div class="alert alert-warning mt-3">';
+                html += '<h5 class="alert-heading">Conflictos de horario con participantes:</h5>';
+                html += '<ul class="mb-0">';
+
+                conflictos.forEach(conflicto => {
+                    html += `<li>
+                <strong>${conflicto.usuario}</strong> tiene una reserva en
+                ${conflicto.sala} (${conflicto.hora_inicio} - ${conflicto.hora_fin}):
+                ${conflicto.titulo}
+            </li>`;
+                });
+
+                html += '</ul></div>';
+                $container.html(html);
+            }
+        }
     </script>
 @endsection

@@ -121,7 +121,51 @@ class ReservasController extends Controller
         }
     }
 
+    public function verificarParticipantes(Request $request)
+    {
+        $request->validate([
+            'fecha' => 'required|date',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
+            'participantes' => 'required|array|min:1'
+        ]);
 
+        $conflictos = [];
+
+        foreach ($request->participantes as $participanteId) {
+            $reservas = HorariosReservas::where('fecha', $request->fecha)
+                ->where(function ($query) use ($request) {
+                    $query->whereBetween('hora_inicio', [$request->hora_inicio, $request->hora_fin])
+                        ->orWhereBetween('hora_fin', [$request->hora_inicio, $request->hora_fin])
+                        ->orWhere(function ($q) use ($request) {
+                            $q->where('hora_inicio', '<=', $request->hora_inicio)
+                                ->where('hora_fin', '>=', $request->hora_fin);
+                        });
+                })
+                ->whereHas('reserva.participantes_reservas', function ($query) use ($participanteId) {
+                    $query->where('fk_idUsuario', $participanteId);
+                })
+                ->with(['reserva' => function($query) {
+                    $query->with(['sala', 'usuario_creador_reserva']);
+                }])
+                ->get();
+
+            foreach ($reservas as $reserva) {
+                $conflictos[] = [
+                    'usuario' => User::find($participanteId)->nombre,
+                    'hora_inicio' => $reserva->hora_inicio,
+                    'hora_fin' => $reserva->hora_fin,
+                    'sala' => $reserva->reserva->sala->nombre,
+                    'titulo' => $reserva->reserva->titulo
+                ];
+            }
+        }
+
+        return response()->json([
+            'disponible' => empty($conflictos),
+            'conflictos' => $conflictos
+        ]);
+    }
     public function buscar_salas_horarios_disponibles(Request $request)
     {
         $request->validate([
