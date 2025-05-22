@@ -31,7 +31,7 @@ class AuthController extends Controller
         try {
             if (Auth::attempt($credentials)) {
                 // Regenerar la sesión para prevenir ataques de fijación de sesión
-                $request->session()->regenerate(); 
+                $request->session()->regenerate();
                 return redirect()->intended('/');
             }
 
@@ -40,7 +40,7 @@ class AuthController extends Controller
             ])->onlyInput('username'); // Opcional: mantener solo el username en el formulario
 
         } catch (\Exception $e) {
-          
+
             Log::error('Error en el proceso de login: ' . $e->getMessage(), ['exception' => $e]);
 
             return redirect()->back()->withErrors([
@@ -64,12 +64,12 @@ class AuthController extends Controller
             ldap_set_option($conexion, LDAP_OPT_REFERRALS, 0);
 
             if (!$conexion) {
-               
+
                 return redirect()->back()->withErrors(['error' => 'No se pudo conectar al servidor LDAP.']);
             }
 
             // Intento de autenticación con LDAP
-            if (false) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
+            if (true) { // COLOCAR EN FALSE SI NO SE CUENTA CON EL LDAP
                 if (!@ldap_bind($conexion, "{$credentials['username']}@" . env('LDAP_DOMAIN'), $credentials['password'])) {
                     return redirect()->back()->withErrors(['error' => 'Credenciales LDAP incorrectas. Verifica tu usuario y contraseña.']);
                 }
