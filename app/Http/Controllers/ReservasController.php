@@ -151,12 +151,18 @@ class ReservasController extends Controller
                 ->get();
 
             foreach ($reservas as $reserva) {
+                // En el controlador, modificar la creación del array de conflictos
                 $conflictos[] = [
                     'usuario' => User::find($participanteId)->nombre,
-                    'hora_inicio' => $reserva->hora_inicio,
-                    'hora_fin' => $reserva->hora_fin,
-                    'sala' => $reserva->reserva->sala->nombre,
-                    'titulo' => $reserva->reserva->titulo
+                    'sala' => strtoupper($reserva->reserva->sala->nombre),
+                    'titulo' => strtoupper($reserva->reserva->titulo),
+                    'hora_inicio' => Carbon::parse($reserva->hora_inicio)
+                        ->setTimezone('America/Caracas')
+                        ->format('H:i'),
+
+                    'hora_fin' => Carbon::parse($reserva->hora_fin)
+                        ->setTimezone('America/Caracas')
+                        ->format('H:i')
                 ];
             }
         }
@@ -292,116 +298,83 @@ class ReservasController extends Controller
 
     public function store(Request $request)
     {
-        // Validación más completa con reglas personalizadas
-
+        // 1. Validación básica
         $validator = Validator::make($request->all(), [
             'titulo' => 'required|string|max:255',
             'descripcion' => 'required|string|max:1000',
             'tipoEvento' => 'required|in:Reunión,Charla,Curso',
-            'fk_idSala' => [
-                'required',
-                'exists:salas,id',
-                function ($attribute, $value, $fail) {
-                    // Validar que la sala esté disponible
-                    if (!Salas::where('id', $value)->where('status', 'Habilitada')->exists()) {
-                        $fail('La sala seleccionada no está disponible para reservas.');
-                    }
-                }
-            ],
+            'fk_idSala' => 'required|exists:salas,id',
             'participantes' => 'required|array|min:1',
             'participantes.*' => 'exists:users,id',
             'fechas' => 'required|array|min:1',
-            'fechas.*' => 'required|date|after_or_equal:today',
+            'fechas.*' => 'date|after_or_equal:today',
             'horas_inicio' => 'required|array|min:1',
-            'horas_inicio.*' => 'required|date_format:H:i',
+            'horas_inicio.*' => 'date_format:H:i',
             'horas_fin' => 'required|array|min:1',
-            'horas_fin.*' => [
-                'required',
-                'date_format:H:i',
-                function ($attribute, $value, $fail) use ($request) {
-                    $index = explode('.', $attribute)[1];
-                    $horaInicio = $request->horas_inicio[$index] ?? null;
-
-                    if ($horaInicio && strtotime($value) <= strtotime($horaInicio)) {
-                        $fail('La hora de fin debe ser posterior a la hora de inicio.');
-                    }
-
-                    // Validar horario dentro del horario de la sala
-                    $sala = Salas::find($request->fk_idSala);
-                    if ($sala) {
-                        if (strtotime($value) > strtotime($sala->horario_fin)) {
-                            $fail('La hora de fin excede el horario disponible de la sala.');
-                        }
-                        if (strtotime($horaInicio) < strtotime($sala->horario_inicio)) {
-                            $fail('La hora de inicio es antes del horario disponible de la sala.');
-                        }
-                    }
-                }
-            ]
-        ], [
-            'titulo.required' => 'El título de la reserva es obligatorio.',
-            'titulo.max' => 'El título no debe exceder los 255 caracteres.',
-            'descripcion.required' => 'Debe ingresar una descripción para la reserva.',
-            'descripcion.max' => 'La descripción no debe exceder los 1000 caracteres.',
-            'tipoEvento.required' => 'Debe seleccionar un tipo de evento.',
-            //            'tipoEvento.in' => 'Debe seleccionar un tipo de evento.',
-            'fk_idSala.required' => 'Debe seleccionar una sala para la reserva.',
-            'fk_idSala.exists' => 'La sala seleccionada no es válida.',
-            'participantes.required' => 'Debe seleccionar al menos un participante.',
-            'participantes.min' => 'Debe agregar al menos un participante.',
-            'participantes.*.exists' => 'Uno o más participantes no son válidos.',
-            'fechas.required' => 'Debe seleccionar al menos una fecha.',
-            'fechas.min' => 'Debe agregar al menos una fecha.',
-            'fechas.*.date' => 'Una o más fechas no son válidas.',
-            'fechas.*.after_or_equal' => 'No se pueden seleccionar fechas pasadas.',
-            'horas_inicio.required' => 'Las horas de inicio son obligatorias.',
-            'horas_inicio.min' => 'Debe agregar al menos una hora de inicio.',
-            'horas_inicio.*.date_format' => 'El formato de la hora de inicio no es válido.',
-            'horas_fin.required' => 'Las horas de fin son obligatorias.',
-            'horas_fin.min' => 'Debe agregar al menos una hora de fin.',
-            'horas_fin.*.date_format' => 'El formato de la hora de fin no es válido.',
+            'horas_fin.*' => 'date_format:H:i|after:horas_inicio.*'
         ]);
 
-        // Validación de disponibilidad de la sala
+        // 2. Validación avanzada
         $validator->after(function ($validator) use ($request) {
-            if ($request->has('fk_idSala') && $request->has('fechas')) {
-                $sala = Salas::find($request->fk_idSala);
+            $sala = Salas::findOrFail($request->fk_idSala);
+            $timezone = 'America/Caracas';
 
-                foreach ($request->fechas as $index => $fecha) {
-                    $horaInicio = $request->horas_inicio[$index] ?? null;
-                    $horaFin = $request->horas_fin[$index] ?? null;
+            foreach ($request->fechas as $index => $fechaStr) {
+                // Parsear fechas/horas con zona horaria
+                $horaInicio = Carbon::parse("$fechaStr {$request->horas_inicio[$index]}", $timezone);
+                $horaFin = Carbon::parse("$fechaStr {$request->horas_fin[$index]}", $timezone);
 
-                    if ($sala && $horaInicio && $horaFin) {
-                        // Verificar colisión con otras reservas
-                        $existeReserva = HorariosReservas::with('reserva')
-                            ->where('fk_idSala', $request->fk_idSala)
-                            ->where('fecha', $fecha)
-                            ->where(function ($query) use ($horaInicio, $horaFin) {
-                                $query->whereBetween('hora_inicio', [$horaInicio, $horaFin])
-                                    ->orWhereBetween('hora_fin', [$horaInicio, $horaFin])
-                                    ->orWhere(function ($q) use ($horaInicio, $horaFin) {
-                                        $q->where('hora_inicio', '<=', $horaInicio)
-                                            ->where('hora_fin', '>=', $horaFin);
-                                    });
-                            })
-                            ->get();
-                        if (count($existeReserva) > 0) {
-                            $reserva = strtoupper($existeReserva[0]->reserva->titulo);
-                            $validator->errors()->add(
-                                "fechas.$index",
-                                "La sala ya está reservada para el $fecha entre $horaInicio y $horaFin con la reserva: $reserva"
-                            );
-                        }
-                    }
+                // En el validador after(), modificar las comparaciones de horario:
+                if ($horaInicio->format('H:i') < Carbon::parse($sala->horario_inicio)->format('H:i')) {
+                    $validator->errors()->add(
+                        "horas_inicio.$index",
+                        "La hora de inicio debe ser después de las " . Carbon::parse($sala->horario_inicio)->format('H:i')
+                    );
+                }
+
+                if ($horaFin->format('H:i') > Carbon::parse($sala->horario_fin)->format('H:i')) {
+                    $validator->errors()->add(
+                        "horas_fin.$index",
+                        "La hora de fin debe ser antes de las " . Carbon::parse($sala->horario_fin)->format('H:i')
+                    );
+                }
+
+                // Validar disponibilidad de sala
+                if (!Reservas::salaDisponible(
+                    $sala->id,
+                    $fechaStr,
+                    $request->horas_inicio[$index],
+                    $request->horas_fin[$index]
+                )) {
+                    $validator->errors()->add(
+                        "fechas.$index",
+                        "La sala ya tiene una reserva en este horario"
+                    );
+                }
+
+                // Validar conflictos de participantes
+                $participantesConflictivos = User::whereIn('id', $request->participantes)
+                    ->whereHas('reservas.reserva_horarios', function ($query) use ($fechaStr, $horaInicio, $horaFin) {
+                        $query->where('fecha', $fechaStr)
+                            ->where(function ($q) use ($horaInicio, $horaFin) {
+                                $q->whereTime('hora_inicio', '<', $horaFin->format('H:i:s'))
+                                    ->whereTime('hora_fin', '>', $horaInicio->format('H:i:s'));
+                            });
+                    })
+                    ->pluck('nombre')
+                    ->toArray();
+
+                if (!empty($participantesConflictivos)) {
+                    $validator->errors()->add(
+                        "participantes",
+                        "Conflictos de horario: " . implode(', ', $participantesConflictivos)
+                    );
                 }
             }
         });
 
         if ($validator->fails()) {
-            return redirect()
-                ->back()
-                ->withErrors($validator)
-                ->withInput();
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
         DB::beginTransaction();

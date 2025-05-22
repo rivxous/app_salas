@@ -24,6 +24,33 @@
             position: sticky;
             top: 20px;
         }
+
+        #conflictos-participantes {
+            transition: all 0.3s ease;
+        }
+
+        #conflictos-participantes .alert {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #conflictos-participantes ul {
+            list-style-type: none;
+            padding-left: 1rem;
+        }
+
+        #conflictos-participantes li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #conflictos-participantes li:before {
+            content: '⚠️';
+            position: absolute;
+            left: 0;
+            top: 2px;
+        }
     </style>
 @endsection
 
@@ -62,8 +89,7 @@
                             <select id="ubicacion" name="ubicacion" class="form-select" required>
                                 <option value="">-- Seleccione una ubicación --</option>
                                 @foreach ($salas->pluck('ubicacion')->unique() as $ubicacion)
-                                    <option value="{{ $ubicacion }}"
-                                        {{ old('ubicacion') == $ubicacion ? 'selected' : '' }}>
+                                    <option value="{{ $ubicacion }}" {{ old('ubicacion') == $ubicacion ? 'selected' : '' }}>
                                         {{ $ubicacion }}
                                     </option>
                                 @endforeach
@@ -119,8 +145,7 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <label class="form-label fw-bold">Fechas y Horarios</label>
-                                    <button type="button" id="agregarFecha" class="btn btn-sm btn-success"
-                                            style="display: none;">
+                                    <button type="button" id="agregarFecha" class="btn btn-sm btn-success" style="display: none;">
                                         <i class="bi bi-plus-circle"></i> Agregar fecha
                                     </button>
                                 </div>
@@ -140,8 +165,7 @@
                                             {!! Form::time('horas_fin[]', null, ['class' => 'form-control', 'required' => true]) !!}
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
-                                            <button type="button" class="btn btn-sm btn-danger eliminarFecha"
-                                                    disabled>
+                                            <button type="button" class="btn btn-sm btn-danger eliminarFecha" disabled>
                                                 <i class="bi bi-trash"></i> Eliminar
                                             </button>
                                         </div>
@@ -228,7 +252,6 @@
     </div>
 @endsection
 
-
 @section('scripts')
     <script>
         $(document).ready(function () {
@@ -256,26 +279,25 @@
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 locale: 'es',
-                timeZone: 'America/Caracas', // Asegurar que la zona horaria está configurada
+                timeZone: 'America/Caracas',
                 firstDay: 1,
                 navLinks: true,
                 nowIndicator: true,
                 eventTimeFormat: {
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: false // Formato 24h para etiquetas
+                    hour12: false
                 },
                 slotLabelFormat: {
                     hour: '2-digit',
                     minute: '2-digit',
-                    hour12: false // Formato 24h para etiquetas
+                    hour12: false
                 },
                 dateClick: function (info) {
                     const fechaCompleta = info.dateStr;
                     const horaInicio = fechaCompleta.split("T")[1];
                     const fecha = fechaCompleta.split("T")[0];
 
-                    // Buscar el primer grupo de fecha vacío o crear uno nuevo
                     let grupoVacio = $('.fecha-grupo').filter(function () {
                         return $(this).find('input[name="fechas[]"]').val() === '' &&
                             $(this).find('input[name="horas_inicio[]"]').val() === '' &&
@@ -290,12 +312,10 @@
                     grupoVacio.find('input[name="fechas[]"]').val(fecha);
                     grupoVacio.find('input[name="horas_inicio[]"]').val(horaInicio);
 
-                    // Establecer hora fin como 1 hora después
                     const [hora, minutos] = horaInicio.split(':');
                     const horaFin = `${parseInt(hora) + 1}:${minutos}`;
                     grupoVacio.find('input[name="horas_fin[]"]').val(horaFin);
 
-                    // Verificar disponibilidad si ya hay sala seleccionada
                     const salaId = $('#fk_idSala').val();
                     if (salaId) {
                         verificarDisponibilidadGrupo(grupoVacio);
@@ -318,7 +338,7 @@
                     const formatoFechaHora = {
                         hour: '2-digit',
                         minute: '2-digit',
-                        hour12: false, // <-- Forzar formato 24h
+                        hour12: false,
                         timeZone: 'America/Caracas'
                     };
 
@@ -346,7 +366,6 @@
                         sanitize: false
                     });
 
-                    // Resaltar conflictos con horarios seleccionados
                     const $fechaInputs = $('input[name="fechas[]"]');
                     const $horaInicioInputs = $('input[name="horas_inicio[]"]');
                     const $horaFinInputs = $('input[name="horas_fin[]"]');
@@ -420,9 +439,7 @@
                     $agregarFechaBtn.show();
                 } else {
                     $agregarFechaBtn.hide();
-                    // Eliminar todos los grupos de fecha excepto el primero
                     $fechasContainer.find('.fecha-grupo').not(':first').remove();
-                    // Habilitar el botón eliminar del primer grupo
                     $fechasContainer.find('.fecha-grupo:first .eliminarFecha').prop('disabled', true);
                 }
             });
@@ -452,7 +469,6 @@
                 `);
                 $fechasContainer.append(nuevoGrupo);
 
-                // Habilitar eliminar en el primer grupo si hay más de uno
                 if ($fechasContainer.find('.fecha-grupo').length > 1) {
                     $fechasContainer.find('.fecha-grupo:first .eliminarFecha').prop('disabled', false);
                 }
@@ -462,7 +478,6 @@
             $(document).on('click', '.eliminarFecha', function () {
                 $(this).closest('.fecha-grupo').remove();
 
-                // Si solo queda un grupo, deshabilitar su botón eliminar
                 if ($fechasContainer.find('.fecha-grupo').length === 1) {
                     $fechasContainer.find('.fecha-grupo:first .eliminarFecha').prop('disabled', true);
                 }
@@ -484,7 +499,6 @@
                     $(this).val('');
                 }
 
-                // Verificar disponibilidad si todos los campos están completos
                 const salaId = $('#fk_idSala').val();
                 const fecha = $grupo.find('input[name="fechas[]"]').val();
 
@@ -493,7 +507,7 @@
                 }
             });
 
-            // Validación automática cuando cambian fecha o hora inicio
+            // Validación automática
             $(document).on('change', 'input[name="fechas[]"], input[name="horas_inicio[]"]', function () {
                 const $grupo = $(this).closest('.fecha-grupo');
                 const salaId = $('#fk_idSala').val();
@@ -506,7 +520,7 @@
                 }
             });
 
-            // Función para verificar disponibilidad de un grupo de fecha/hora
+            // Función para verificar disponibilidad de sala
             async function verificarDisponibilidadGrupo($grupo) {
                 const salaId = $('#fk_idSala').val();
                 const fecha = $grupo.find('input[name="fechas[]"]').val();
@@ -514,7 +528,6 @@
                 const horaFin = $grupo.find('input[name="horas_fin[]"]').val();
 
                 if (salaId && fecha && horaInicio && horaFin) {
-                    // Mostrar indicador de carga
                     $grupo.find('.disponibilidad-msg').remove();
                     const loadingMsg = $('<div class="disponibilidad-msg mt-1 small text-muted"><i class="bi bi-hourglass"></i> Verificando disponibilidad...</div>');
                     $grupo.append(loadingMsg);
@@ -541,12 +554,10 @@
                         })
                     });
 
-                    // Si hay reservas (status 200), no está disponible
                     if (response.status === 200) {
                         const data = await response.json();
                         return data.length === 0;
                     }
-                    // Si no hay reservas (status 404), está disponible
                     return true;
                 } catch (error) {
                     console.error('Error al verificar disponibilidad:', error);
@@ -556,7 +567,6 @@
 
             // Función para mostrar el estado de disponibilidad
             function mostrarEstadoDisponibilidad($elemento, disponible) {
-                // Eliminar cualquier mensaje previo
                 $elemento.find('.disponibilidad-msg').remove();
 
                 const mensaje = $('<div class="disponibilidad-msg mt-1 small"></div>');
@@ -585,36 +595,29 @@
                         body: JSON.stringify({id_sala: salaId})
                     });
 
-                    if (!response.ok) {
-                        throw new Error('Error al cargar reservas');
-                    }
-
+                    if (!response.ok) throw new Error('Error al cargar reservas');
                     const reservas = await response.json();
 
-                    // Limpiar eventos existentes
                     calendar.removeAllEventSources();
 
-                    // Procesar cada reserva y sus horarios
                     const events = reservas.flatMap(reserva => {
                         return reserva.reserva_horarios.map(horario => {
-                            // Parsear fecha en componentes locales
                             const fechaParts = horario.fecha.split('-');
                             const year = parseInt(fechaParts[0]);
-                            const month = parseInt(fechaParts[1]) - 1; // Meses 0-based
+                            const month = parseInt(fechaParts[1]) - 1;
                             const day = parseInt(fechaParts[2]);
 
-                            // Crear fechas en zona horaria local
                             const [startH, startM] = horario.hora_inicio.split(':').map(Number);
-                            const startDate = new Date(year, month, day, startH, startM); // Usa hora local directamente
+                            const startDate = new Date(year, month, day, startH, startM);
 
                             const [endH, endM] = horario.hora_fin.split(':').map(Number);
-                            const endDate = new Date(year, month, day, endH, endM); // Usa hora local directamente
+                            const endDate = new Date(year, month, day, endH, endM);
 
                             return {
                                 title: reserva.titulo,
                                 start: startDate,
                                 end: endDate,
-                                color: '#dc3545', // Rojo para indicar ocupado
+                                color: '#dc3545',
                                 extendedProps: {
                                     description: reserva.descripcion,
                                     sala: reserva.sala.nombre,
@@ -627,7 +630,6 @@
                         });
                     });
 
-                    // Agregar nuevos eventos
                     calendar.addEventSource(events);
                     calendar.refetchEvents();
                 } catch (error) {
@@ -698,14 +700,12 @@
             // Validación del formulario
             (function () {
                 'use strict'
-
                 const form = document.getElementById('reservaForm');
 
                 form.addEventListener('submit', async function (event) {
                     event.preventDefault();
                     event.stopPropagation();
 
-                    // Verificar disponibilidad de todos los horarios
                     const gruposFecha = $('.fecha-grupo');
                     let todosDisponibles = true;
                     let algunCampoIncompleto = false;
@@ -759,67 +759,131 @@
                         return;
                     }
 
-                    // Si todo está bien, enviar el formulario
                     form.submit();
                 }, false);
             })();
-        });
-        // Agregar este evento para validar participantes
-        $('#fk_participantes').on('change', async function () {
-            const participantes = $(this).val();
-            const salaId = $('#fk_idSala').val();
-            const fechas = $('input[name="fechas[]"]').map((i, e) => $(e).val()).get();
-            const horasInicio = $('input[name="horas_inicio[]"]').map((i, e) => $(e).val()).get();
-            const horasFin = $('input[name="horas_fin[]"]').map((i, e) => $(e).val()).get();
 
-            // Verificar para cada grupo de fecha/hora
-            for (let i = 0; i < fechas.length; i++) {
-                const fecha = fechas[i];
-                const horaInicio = horasInicio[i];
-                const horaFin = horasFin[i];
+            // Validación de participantes
+            function configurarValidacionParticipantes() {
+                const $participantes = $('#fk_participantes');
+                const $contenedorFechas = $('#fechasContainer');
 
-                if (fecha && horaInicio && horaFin && participantes && participantes.length > 0) {
-                    const response = await fetch("{{ route('verificar.participantes') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            fecha: fecha,
-                            hora_inicio: horaInicio,
-                            hora_fin: horaFin,
-                            participantes: participantes
-                        })
+                const validarParticipantes = async function() {
+                    const participantes = $participantes.val();
+                    const grupos = $contenedorFechas.find('.fecha-grupo');
+                    const conflictosAcumulados = [];
+
+                    for (const grupo of grupos) {
+                        const $grupo = $(grupo);
+                        const fecha = $grupo.find('input[name="fechas[]"]').val();
+                        const horaInicio = $grupo.find('input[name="horas_inicio[]"]').val();
+                        const horaFin = $grupo.find('input[name="horas_fin[]"]').val();
+
+                        if (fecha && horaInicio && horaFin && participantes && participantes.length > 0) {
+                            try {
+                                const response = await fetch("{{ route('verificar.participantes') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({
+                                        fecha: fecha,
+                                        hora_inicio: horaInicio,
+                                        hora_fin: horaFin,
+                                        participantes: participantes
+                                    })
+                                });
+
+                                const data = await response.json();
+                                if (data.conflictos.length > 0) {
+                                    conflictosAcumulados.push({
+                                        fecha: fecha,
+                                        horario: `${horaInicio} - ${horaFin}`,
+                                        conflictos: data.conflictos
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Error:', error);
+                            }
+                        }
+                    }
+
+                    mostrarConflictosParticipantes(conflictosAcumulados);
+                };
+
+                $participantes.on('change', validarParticipantes);
+                $contenedorFechas.on('change', 'input[name="fechas[]"], input[name="horas_inicio[]"], input[name="horas_fin[]"]', validarParticipantes);
+            }
+
+            // Función modificada para mostrar conflictos
+            function mostrarConflictosParticipantes(conflictosAgrupados) {
+                const $container = $('#conflictos-participantes');
+                $container.empty();
+
+                if (conflictosAgrupados.length > 0) {
+                    let html = '<div class="alert alert-warning mt-3">';
+                    html += '<h5 class="alert-heading">🚨 Conflictos de horario detectados:</h5>';
+
+                    conflictosAgrupados.forEach(grupo => {
+                        // console.log(grupo);
+                        // Formatear fecha principal
+                        const fechaFormateada = formatearFecha(grupo.fecha);
+
+                        html += `<div class="mb-2">
+                                <strong>${fechaFormateada}</strong>
+                                <ul class="mb-1">`;
+
+                        // Mostrar solo horas si es el mismo día
+                        grupo.conflictos.forEach(conflicto => {
+                            const inicio = formatearHora(conflicto.hora_inicio_iso);
+                            const fin = formatearHora(conflicto.hora_fin_iso);
+
+                            html += `<li>
+                                        <span class="text-danger">${conflicto.usuario}</span>
+                                        en ${conflicto.sala}: ${conflicto.titulo}
+                                        (${conflicto.hora_inicio} - ${conflicto.hora_fin})
+                                    </li>`;
+                        });
+
+                        html += '</ul></div>';
                     });
 
-                    const data = await response.json();
-                    mostrarConflictosParticipantes(data.conflictos);
+                    html += '</div>';
+                    $container.html(html);
                 }
             }
+// Función corregida para manejar fechas UTC
+            function formatearFecha(fechaISO) {
+                const fecha = new Date(fechaISO + 'T12:00:00Z'); // Forzar horario de mediodía UTC
+                const opciones = {
+                    timeZone: 'America/Caracas',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                };
+
+                return fecha.toLocaleDateString('es-VE', opciones);
+            }
+
+// Función formatearHora Ajustada
+            function formatearHora(fechaISO) {
+                const fecha = new Date(fechaISO);
+                const opciones = {
+                    timeZone: 'America/Caracas',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                };
+
+                return fecha.toLocaleTimeString('es-VE', opciones)
+                    .replace(/\./g, '') // Eliminar puntos en AM/PM
+                    .toUpperCase(); // Convertir a mayúsculas
+            }
+
+            configurarValidacionParticipantes();
         });
 
-        // Función para mostrar conflictos de participantes
-        function mostrarConflictosParticipantes(conflictos) {
-            const $container = $('#conflictos-participantes');
-            $container.empty();
 
-            if (conflictos.length > 0) {
-                let html = '<div class="alert alert-warning mt-3">';
-                html += '<h5 class="alert-heading">Conflictos de horario con participantes:</h5>';
-                html += '<ul class="mb-0">';
-
-                conflictos.forEach(conflicto => {
-                    html += `<li>
-                <strong>${conflicto.usuario}</strong> tiene una reserva en
-                ${conflicto.sala} (${conflicto.hora_inicio} - ${conflicto.hora_fin}):
-                ${conflicto.titulo}
-            </li>`;
-                });
-
-                html += '</ul></div>';
-                $container.html(html);
-            }
-        }
     </script>
 @endsection
