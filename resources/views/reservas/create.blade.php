@@ -102,10 +102,17 @@
                         </div>
 
                         <!-- Sala -->
-                        <div class="mb-3" id="salaContainer" style="display: none;">
+                        <div class="mb-3" id="salaContainer" style="display: {{ old('fk_idSala') ? 'block' : 'none' }};">
                             {!! Form::label('fk_idSala', 'Sala', ['class' => 'form-label fw-bold']) !!}
                             <select id="fk_idSala" name="fk_idSala" class="form-select" required>
                                 <option value="">-- Seleccione una sala --</option>
+                                @if(old('ubicacion'))
+                                    @foreach ($salas->where('ubicacion', old('ubicacion')) as $sala)
+                                        <option value="{{ $sala->id }}" {{ old('fk_idSala') == $sala->id ? 'selected' : '' }}>
+                                            {{ $sala->nombre }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
                             @error('fk_idSala')
                             <div class="invalid-feedback d-block">
@@ -115,7 +122,7 @@
                         </div>
 
                         <!-- Campos de reserva -->
-                        <div id="camposReserva" style="display: none;">
+                        <div id="camposReserva" style="display: {{ old('fk_idSala') ? 'block' : 'none' }};">
                             <!-- Tipo de evento -->
                             <div class="mb-3">
                                 {!! Form::label('tipoEvento', 'Tipo de Evento', ['class' => 'form-label fw-bold']) !!}
@@ -127,7 +134,7 @@
                                         'Charla' => 'Charla',
                                         'Curso' => 'Curso',
                                     ],
-                                    null,
+                                    old('tipoEvento'),
                                     [
                                         'class' => 'form-select',
                                         'id' => 'tipoEvento',
@@ -151,25 +158,49 @@
                                 </div>
 
                                 <div id="fechasContainer">
-                                    <div class="row g-3 mb-3 fecha-grupo">
-                                        <div class="col-md-4">
-                                            {!! Form::label('fechas[]', 'Fecha', ['class' => 'form-label']) !!}
-                                            {!! Form::date('fechas[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                    @if(old('fechas'))
+                                        @foreach(old('fechas') as $index => $fecha)
+                                            <div class="row g-3 mb-3 fecha-grupo">
+                                                <div class="col-md-4">
+                                                    {!! Form::label('fechas[]', 'Fecha', ['class' => 'form-label']) !!}
+                                                    {!! Form::date('fechas[]', $fecha, ['class' => 'form-control', 'required' => true]) !!}
+                                                </div>
+                                                <div class="col-md-3">
+                                                    {!! Form::label('horas_inicio[]', 'Hora de Inicio', ['class' => 'form-label']) !!}
+                                                    {!! Form::time('horas_inicio[]', old('horas_inicio.'.$index), ['class' => 'form-control', 'required' => true]) !!}
+                                                </div>
+                                                <div class="col-md-3">
+                                                    {!! Form::label('horas_fin[]', 'Hora de Fin', ['class' => 'form-label']) !!}
+                                                    {!! Form::time('horas_fin[]', old('horas_fin.'.$index), ['class' => 'form-control', 'required' => true]) !!}
+                                                </div>
+                                                <div class="col-md-2 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-sm btn-danger eliminarFecha" {{ $loop->first ? 'disabled' : '' }}>
+                                                        <i class="bi bi-trash"></i> Eliminar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="row g-3 mb-3 fecha-grupo">
+                                            <div class="col-md-4">
+                                                {!! Form::label('fechas[]', 'Fecha', ['class' => 'form-label']) !!}
+                                                {!! Form::date('fechas[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                            </div>
+                                            <div class="col-md-3">
+                                                {!! Form::label('horas_inicio[]', 'Hora de Inicio', ['class' => 'form-label']) !!}
+                                                {!! Form::time('horas_inicio[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                            </div>
+                                            <div class="col-md-3">
+                                                {!! Form::label('horas_fin[]', 'Hora de Fin', ['class' => 'form-label']) !!}
+                                                {!! Form::time('horas_fin[]', null, ['class' => 'form-control', 'required' => true]) !!}
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-sm btn-danger eliminarFecha" disabled>
+                                                    <i class="bi bi-trash"></i> Eliminar
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="col-md-3">
-                                            {!! Form::label('horas_inicio[]', 'Hora de Inicio', ['class' => 'form-label']) !!}
-                                            {!! Form::time('horas_inicio[]', null, ['class' => 'form-control', 'required' => true]) !!}
-                                        </div>
-                                        <div class="col-md-3">
-                                            {!! Form::label('horas_fin[]', 'Hora de Fin', ['class' => 'form-label']) !!}
-                                            {!! Form::time('horas_fin[]', null, ['class' => 'form-control', 'required' => true]) !!}
-                                        </div>
-                                        <div class="col-md-2 d-flex align-items-end">
-                                            <button type="button" class="btn btn-sm btn-danger eliminarFecha" disabled>
-                                                <i class="bi bi-trash"></i> Eliminar
-                                            </button>
-                                        </div>
-                                    </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -255,11 +286,9 @@
 @section('scripts')
     <script>
         $(document).ready(function () {
-            // Datos de las salas
             const salas = @json($salas);
             const salasPorUbicacion = {};
 
-            // Organizar salas por ubicación
             salas.forEach(sala => {
                 if (!salasPorUbicacion[sala.ubicacion]) {
                     salasPorUbicacion[sala.ubicacion] = [];
@@ -267,7 +296,6 @@
                 salasPorUbicacion[sala.ubicacion].push(sala);
             });
 
-            // Inicializar FullCalendar
             const calendarEl = document.getElementById('calendar');
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
@@ -390,7 +418,6 @@
 
             calendar.render();
 
-            // Elementos del DOM
             const $ubicacionSelect = $('#ubicacion');
             const $salaSelect = $('#fk_idSala');
             const $salaContainer = $('#salaContainer');
@@ -407,22 +434,58 @@
                 allowClear: true
             });
 
-            // Cambio de ubicación
+            function inicializarFormulario() {
+                if ($('#ubicacion').val()) {
+                    $('#salaContainer').show();
+
+                    const ubicacion = $('#ubicacion').val();
+                    if (ubicacion && salasPorUbicacion[ubicacion]) {
+                        $('#fk_idSala').empty().append('<option value="">-- Seleccione una sala --</option>');
+                        salasPorUbicacion[ubicacion].forEach(sala => {
+                            const selected = sala.id == '{{ old('fk_idSala') }}' ? 'selected' : '';
+                            $('#fk_idSala').append(`<option value="${sala.id}" ${selected}>${sala.nombre}</option>`);
+                        });
+                    }
+
+                    if ($('#fk_idSala').val()) {
+                        $('#camposReserva').show();
+                        cargarReservasEnCalendario($('#fk_idSala').val());
+                    }
+                }
+
+                if ($('#tipoEvento').val() === 'Curso') {
+                    $('#agregarFecha').show();
+                }
+
+                if ($('#fk_participantes').val()?.length > 0) {
+                    $('#fk_participantes').trigger('change');
+                }
+
+                @if(old('fechas') && count(old('fechas')) > 1)
+                $('.eliminarFecha').prop('disabled', false);
+                @endif
+            }
+
             $ubicacionSelect.on('change', function () {
-                const ubicacionSeleccionada = $(this).val();
+                const ubicacion = $(this).val();
                 $salaSelect.empty().append('<option value="">-- Seleccione una sala --</option>');
                 $salaContainer.hide();
                 $camposReserva.hide();
 
-                if (ubicacionSeleccionada && salasPorUbicacion[ubicacionSeleccionada]) {
-                    salasPorUbicacion[ubicacionSeleccionada].forEach(sala => {
-                        $salaSelect.append(`<option value="${sala.id}">${sala.nombre}</option>`);
+                if (ubicacion && salasPorUbicacion[ubicacion]) {
+                    salasPorUbicacion[ubicacion].forEach(sala => {
+                        const selected = sala.id == '{{ old('fk_idSala') }}' ? 'selected' : '';
+                        $salaSelect.append(`<option value="${sala.id}" ${selected}>${sala.nombre}</option>`);
                     });
                     $salaContainer.show();
+
+                    if ($('#fk_idSala').val()) {
+                        $camposReserva.show();
+                        cargarReservasEnCalendario($('#fk_idSala').val());
+                    }
                 }
             });
 
-            // Cambio de sala
             $salaSelect.on('change', function () {
                 if ($(this).val()) {
                     $camposReserva.show();
@@ -433,7 +496,6 @@
                 }
             });
 
-            // Cambio de tipo de evento
             $tipoEvento.on('change', function () {
                 if ($(this).val() === 'Curso') {
                     $agregarFechaBtn.show();
@@ -444,7 +506,6 @@
                 }
             });
 
-            // Agregar nueva fecha
             $agregarFechaBtn.on('click', function () {
                 const nuevoGrupo = $(`
                     <div class="row g-3 mb-3 fecha-grupo">
@@ -474,7 +535,6 @@
                 }
             });
 
-            // Eliminar fecha
             $(document).on('click', '.eliminarFecha', function () {
                 $(this).closest('.fecha-grupo').remove();
 
@@ -483,7 +543,6 @@
                 }
             });
 
-            // Validación de horas
             $(document).on('change', 'input[name="horas_fin[]"]', function () {
                 const $grupo = $(this).closest('.fecha-grupo');
                 const inicio = $grupo.find('input[name="horas_inicio[]"]').val();
@@ -507,7 +566,6 @@
                 }
             });
 
-            // Validación automática
             $(document).on('change', 'input[name="fechas[]"], input[name="horas_inicio[]"]', function () {
                 const $grupo = $(this).closest('.fecha-grupo');
                 const salaId = $('#fk_idSala').val();
@@ -520,7 +578,6 @@
                 }
             });
 
-            // Función para verificar disponibilidad de sala
             async function verificarDisponibilidadGrupo($grupo) {
                 const salaId = $('#fk_idSala').val();
                 const fecha = $grupo.find('input[name="fechas[]"]').val();
@@ -537,7 +594,6 @@
                 }
             }
 
-            // Función para verificar disponibilidad con la API
             async function verificarDisponibilidad(salaId, fecha, horaInicio, horaFin) {
                 try {
                     const response = await fetch("{{ route('buscar_salas_horarios_disponibles') }}", {
@@ -565,7 +621,6 @@
                 }
             }
 
-            // Función para mostrar el estado de disponibilidad
             function mostrarEstadoDisponibilidad($elemento, disponible) {
                 $elemento.find('.disponibilidad-msg').remove();
 
@@ -583,7 +638,6 @@
                 $elemento.append(mensaje);
             }
 
-            // Función para cargar reservas en el calendario
             async function cargarReservasEnCalendario(salaId) {
                 try {
                     const response = await fetch("{{ route('buscar_salas_horarios_disponibles') }}", {
@@ -637,7 +691,6 @@
                 }
             }
 
-            // Botón para verificar todos los horarios
             $verificarDisponibilidadBtn.on('click', async function () {
                 const gruposFecha = $('.fecha-grupo');
                 let todosDisponibles = true;
@@ -697,7 +750,6 @@
                 }
             });
 
-            // Validación del formulario
             (function () {
                 'use strict'
                 const form = document.getElementById('reservaForm');
@@ -763,7 +815,6 @@
                 }, false);
             })();
 
-            // Validación de participantes
             function configurarValidacionParticipantes() {
                 const $participantes = $('#fk_participantes');
                 const $contenedorFechas = $('#fechasContainer');
@@ -816,7 +867,6 @@
                 $contenedorFechas.on('change', 'input[name="fechas[]"], input[name="horas_inicio[]"], input[name="horas_fin[]"]', validarParticipantes);
             }
 
-            // Función modificada para mostrar conflictos
             function mostrarConflictosParticipantes(conflictosAgrupados) {
                 const $container = $('#conflictos-participantes');
                 $container.empty();
@@ -826,15 +876,12 @@
                     html += '<h5 class="alert-heading">🚨 Conflictos de horario detectados:</h5>';
 
                     conflictosAgrupados.forEach(grupo => {
-                        // console.log(grupo);
-                        // Formatear fecha principal
                         const fechaFormateada = formatearFecha(grupo.fecha);
 
                         html += `<div class="mb-2">
                                 <strong>${fechaFormateada}</strong>
                                 <ul class="mb-1">`;
 
-                        // Mostrar solo horas si es el mismo día
                         grupo.conflictos.forEach(conflicto => {
                             const inicio = formatearHora(conflicto.hora_inicio_iso);
                             const fin = formatearHora(conflicto.hora_fin_iso);
@@ -853,9 +900,9 @@
                     $container.html(html);
                 }
             }
-// Función corregida para manejar fechas UTC
+
             function formatearFecha(fechaISO) {
-                const fecha = new Date(fechaISO + 'T12:00:00Z'); // Forzar horario de mediodía UTC
+                const fecha = new Date(fechaISO + 'T12:00:00Z');
                 const opciones = {
                     timeZone: 'America/Caracas',
                     day: '2-digit',
@@ -866,7 +913,6 @@
                 return fecha.toLocaleDateString('es-VE', opciones);
             }
 
-// Función formatearHora Ajustada
             function formatearHora(fechaISO) {
                 const fecha = new Date(fechaISO);
                 const opciones = {
@@ -877,13 +923,16 @@
                 };
 
                 return fecha.toLocaleTimeString('es-VE', opciones)
-                    .replace(/\./g, '') // Eliminar puntos en AM/PM
-                    .toUpperCase(); // Convertir a mayúsculas
+                    .replace(/\./g, '')
+                    .toUpperCase();
             }
 
             configurarValidacionParticipantes();
+            inicializarFormulario();
+
+            if ($('#fk_idSala').val()) {
+                cargarReservasEnCalendario($('#fk_idSala').val());
+            }
         });
-
-
     </script>
 @endsection
