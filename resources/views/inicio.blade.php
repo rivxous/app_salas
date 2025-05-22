@@ -25,7 +25,16 @@
                         </div>
                     </div>
 
-
+                    <!-- Módulo de Reservas -->
+                    <div class="nav-item">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Reservas</h5>
+                                <p class="card-text">Visualización de reservas actuales.</p>
+                                <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
+                            </div>
+                        </div>
+                    </div>
                     @if (Auth::user()->rol == 'admin')
                         <!-- Módulo de Salas -->
                         <div class="nav-item mx-3">
@@ -34,16 +43,6 @@
                                     <h5 class="card-title">Salas</h5>
                                     <p class="card-text">Visualización de salas</p>
                                     <a href="{{ route('salas.index') }}" class="btn btn-warning">Acceder</a>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Módulo de Reservas -->
-                        <div class="nav-item">
-                            <div class="card shadow-sm border-0">
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">Reservas</h5>
-                                    <p class="card-text">Visualización de reservas actuales.</p>
-                                    <a href="{{ route('reservas.index') }}" class="btn btn-success">Acceder</a>
                                 </div>
                             </div>
                         </div>
@@ -65,27 +64,33 @@
 
 
             <!-- Contenido Principal -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <main class=" container-fluid">
                 <div
                     class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">
                         <i class="fas fa-calendar-day me-2"></i>Calendario de Reservas
                     </h1>
-                    <div class="btn-toolbar mb-2 mb-md-0">
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-print"></i> Imprimir
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-success">
-                                <i class="fas fa-file-export"></i> Exportar
-                            </button>
-                        </div>
-                    </div>
+
                 </div>
 
                 <!-- Calendario -->
-                <div class="container-fluid">
-                    <div id="calendar" class="shadow-lg bg-white p-3 rounded-3"></div>
+                <div class="container-fluid row">
+                    <div class="container-fluid col-md-6">
+                        <div id="calendar" class="shadow-lg bg-white p-3 rounded-3"></div>
+                    </div>
+                    <div class="container-fluid col-md-6 citas">
+                        @foreach ($eventos as $evento)
+                            <div class="container-fluid">
+                                <p>Titulo : {{ $evento['title'] }}</p>
+                                <p>Hora inicio : {{ $evento['start'] }}</p>
+                                <p>Hora fin {{ $evento['end'] }}</p>
+                            </div>
+                            <div class="" style="
+                             border-bottom: solid 1px black;
+
+                            "></div>
+                        @endforeach
+                    </div>
                 </div>
             </main>
         </div>
@@ -93,6 +98,12 @@
 
     <!-- Estilos Personalizados -->
     <style>
+        .citas {
+            border: solid 1px #2c3e50;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
         /* En tu archivo CSS */
         .fc-event-custom {
             border-radius: 4px;
@@ -200,14 +211,16 @@
                     hour12: false
                 },
                 eventDidMount: function(info) {
+                    console.log(info.event)
                     const content = `
-            <div class="popover-content-custom">
-                <p class="mb-1"><strong>${info.event.title}</strong></p>
-                <p class="mb-1">${info.event.extendedProps.description}</p>
-                <hr class="my-1">
-                <small>Sala: ${info.event.extendedProps.sala}</small><br>
-                <small>Organizador: ${info.event.extendedProps.organizador}</small>
-            </div>
+                        <div class="popover-content-custom">
+                            <p class="mb-1"><strong> Hora: ${info.timeText}</strong></p>
+                            <p class="mb-1"><strong>Titulo: ${info.event.title}</strong></p>
+                            <p class="mb-1">Descripción:${info.event.extendedProps.description}</p>
+                            <hr class="my-1">
+                            <small>Sala: ${info.event.extendedProps.sala}</small><br>
+                            <small>Organizador: ${info.event.extendedProps.organizador}</small>
+                        </div>
         `;
 
                     new bootstrap.Popover(info.el, {

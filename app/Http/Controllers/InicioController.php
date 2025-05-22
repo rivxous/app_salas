@@ -5,16 +5,35 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Salas;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use Log;
 
 class InicioController extends Controller
 {
-    
+
     public function inicio()
     {
-        $salas  = $this->getSalasForCalendar();
-        return view('inicio' , [
-            'salas' => $salas
+        $salas = $this->getSalasForCalendar();
+        $user = User::find(Auth::user()->id);
+        $reservasDelUsuario = $user->reservas->load('reserva_horarios'); // Cargar los horarios de todas las reservas del usuario
+
+        $eventosParaCalendario = [];
+
+        foreach ($reservasDelUsuario as $reserva) {
+            foreach ($reserva->reserva_horarios as $horario) {
+                $eventosParaCalendario[] = [
+                    'title' => $reserva->titulo,
+                    'start' => $horario->fecha->toDateString() . ' ' . $horario->hora_inicio,
+                    'end' => $horario->fecha->toDateString() . ' ' . $horario->hora_fin,
+                    // Agrega aquí cualquier otra información que necesites para tu calendario
+                ];
+            }
+        }
+       // return $eventosParaCalendario;
+        return view('inicio', [
+            'salas' => $salas,
+            'eventos' => $eventosParaCalendario
         ]);
     }
 
@@ -26,7 +45,7 @@ class InicioController extends Controller
 
         // 2. Transformar la colección usando el método map()
         $fullCalendarEvents = $salas->map(function ($sala) {
-       
+
             $hoy = Carbon::now()->format(format: 'Y-m-d');
             // Combinar la fecha de hoy con los horarios de inicio y fin de la sala
             $startDateTime = $hoy . ' ' . $sala->horario_inicio;
@@ -39,18 +58,17 @@ class InicioController extends Controller
                     $endDateTime = Carbon::parse($hoy)->addDay()->format('Y-m-d') . ' ' . $sala->horario_fin;
                 }
             } catch (\Exception $e) {
-             
             }
             // --- Fin Manejo Medianoche ---
 
 
             // Decodificar el JSON de atributos (si está almacenado como string JSON)
             // El 'true' al final convierte el objeto JSON a un array asociativo de PHP
-            
-          //  $atributosArray = json_decode($sala->atributos, true);
+
+            //  $atributosArray = json_decode($sala->atributos, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $atributosArray = []; // Asignar un array vacío si hay un error de decodificación
-              
+
             }
 
 
@@ -60,8 +78,8 @@ class InicioController extends Controller
                 'title' => 'Sala: ' . $sala->nombre . ' (' . $sala->ubicacion . ')', // Título del evento
                 'start' => $startDateTime, // Fecha y hora de inicio (formato YYYY-MM-DD HH:mm:ss o compatible con ISO 8601)
                 'end' => $endDateTime,     // Fecha y hora de fin
-                'allDay' => false, 
-              
+                'allDay' => false,
+
                 'extendedProps' => [
                     'ubicacion' => $sala->ubicacion,
                     'capacidad' => $sala->capacidad,
@@ -69,7 +87,7 @@ class InicioController extends Controller
                     //'atributos' => $atributosArray, // El array de atributos decodificado
                     // Agrega cualquier otro dato de la sala que necesites en el frontend
                 ],
-               
+
             ];
         });
 

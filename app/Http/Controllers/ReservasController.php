@@ -58,8 +58,8 @@ class ReservasController extends Controller
             return $reserva->reserva_horarios->map(function ($horario) use ($reserva) {
                 return [
                     'title' => $reserva->titulo,
-                    'start' => Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_inicio)->toIso8601String(),
-                    'end' => Carbon::parse($horario->fecha->format('Y-m-d') . ' ' . $horario->hora_fin)->toIso8601String(),
+                    'start' => $horario->fecha->toDateString() . ' ' . $horario->hora_inicio->format('H:i:s'),
+                    'end' => $horario->fecha->toDateString() . ' ' . $horario->hora_fin->format('H:i:s'),
                     'color' => '#ff5733',
                     'description' => $reserva->descripcion,
                 ];
@@ -142,10 +142,10 @@ class ReservasController extends Controller
 
                 $reservas->whereHas('reserva_horarios', function ($query) use ($fecha, $horaInicio, $horaFin) {
                     $query->where('fecha', $fecha)
-                        ->where(function($q) use ($horaInicio, $horaFin) {
+                        ->where(function ($q) use ($horaInicio, $horaFin) {
                             $q->whereBetween('hora_inicio', [$horaInicio, $horaFin])
                                 ->orWhereBetween('hora_fin', [$horaInicio, $horaFin])
-                                ->orWhere(function($subQ) use ($horaInicio, $horaFin) {
+                                ->orWhere(function ($subQ) use ($horaInicio, $horaFin) {
                                     $subQ->where('hora_inicio', '<=', $horaInicio)
                                         ->where('hora_fin', '>=', $horaFin);
                                 });
@@ -160,7 +160,6 @@ class ReservasController extends Controller
             }
 
             return response()->json($reservas, 200);
-
         } catch (\Exception $e) {
             Log::error('Error en buscar_salas_por_ubicacion@ReservasController: ' . $e->getMessage());
             return response()->json(['error' => 'Error al procesar la solicitud'], 500);
@@ -171,7 +170,7 @@ class ReservasController extends Controller
     {
         $salas = Salas::with('horariosReservas')->get();
         $usuarios = User::pluck('nombre', 'id');
-//        return $salas;
+        //        return $salas;
 
         // Obtener días/horarios ocupados para cada sala
         $horariosOcupados = [];
@@ -250,6 +249,7 @@ class ReservasController extends Controller
     public function store(Request $request)
     {
         // Validación más completa con reglas personalizadas
+
         $validator = Validator::make($request->all(), [
             'titulo' => 'required|string|max:255',
             'descripcion' => 'required|string|max:1000',
@@ -300,7 +300,7 @@ class ReservasController extends Controller
             'descripcion.required' => 'Debe ingresar una descripción para la reserva.',
             'descripcion.max' => 'La descripción no debe exceder los 1000 caracteres.',
             'tipoEvento.required' => 'Debe seleccionar un tipo de evento.',
-//            'tipoEvento.in' => 'Debe seleccionar un tipo de evento.',
+            //            'tipoEvento.in' => 'Debe seleccionar un tipo de evento.',
             'fk_idSala.required' => 'Debe seleccionar una sala para la reserva.',
             'fk_idSala.exists' => 'La sala seleccionada no es válida.',
             'participantes.required' => 'Debe seleccionar al menos un participante.',
@@ -382,28 +382,124 @@ class ReservasController extends Controller
 
             // Guardar horarios
             $horariosData = [];
-            foreach ($request->fechas as $i => $fecha) {
-                $horariosData[] = [
-                    'fecha' => $fecha,
-                    'hora_inicio' => $request->horas_inicio[$i],
-                    'hora_fin' => $request->horas_fin[$i],
-                    'fk_idReserva' => $reserva->id,
-                    'fk_idSala' => $request->fk_idSala,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
+            $fechaInicioBase = null;
+            if (!empty($request->fechas)) {
+                $fechaInicioBase = Carbon::parse($request->fechas[0]); // Tomamos la primera fecha como base
+            }
+            if ($fechaInicioBase && $request->has('dias') && is_array($request->dias) && $request->filled('repeticion') && $request->filled('temporalidad')) {
+                $repeticion = (int) $request->repeticion;
+                $temporalidad = (int) $request->temporalidad;
+
+                for ($i = 0; $i < $repeticion; $i++) {
+                    foreach ($request->dias as $diaSemana) {
+                        $diaIndice = null;
+                        switch (strtolower($diaSemana)) {
+                            case 'lunes':
+                                $diaIndice = 1;
+                                break;
+                            case 'martes':
+                                $diaIndice = 2;
+                                break;
+                            case 'miercoles':
+                                $diaIndice = 3;
+                                break;
+                            case 'jueves':
+                                $diaIndice = 4;
+                                break;
+                            case 'viernes':
+                                $diaIndice = 5;
+                                break;
+                            case 'sabado':
+                                $diaIndice = 6;
+                                break;
+                            case 'domingo':
+                                $diaIndice = 0;
+                                break;
+                        }
+
+                        if ($diaIndice !== null) {
+                            $fechaEventoBase = $fechaInicioBase->copy();
+
+                            switch ($temporalidad) {
+                                case 1: // Semana
+                                    $fechaEvento = $fechaEventoBase->addWeeks($i)->startOfWeek()->addDay($diaIndice);
+                                    break;
+                                case 2: // Mes
+                                    $fechaEventoBase->addMonths($i);
+                                    $primerDiaDelMes = $fechaEventoBase->startOfMonth();
+                                    $fechaEvento = $primerDiaDelMes->copy()->next($diaSemana);
+                                    if ($fechaEvento->lt($primerDiaDelMes)) {
+                                        $fechaEvento->addWeek();
+                                    }
+                                    break;
+                                case 3: // Año
+                                    $fechaEvento = $fechaEventoBase->addYears($i)->startOfYear()->addDayOfYear(($fechaInicioBase->dayOfYear - $fechaInicioBase->dayOfWeek + $diaIndice) % 7);
+                                    if ($fechaEvento->lt($fechaEventoBase->startOfYear())) {
+                                        $fechaEvento->addWeek();
+                                    }
+                                    break;
+                                default:
+                                    continue 2; // Si la temporalidad no es válida, salta a la siguiente iteración de días
+                            }
+
+                            // Asegurarse de que la fecha generada sea igual o posterior a la fecha de inicio base
+                            if ($fechaEvento->gte($fechaInicioBase)) {
+                                // Si solo hay una hora de inicio y fin, usar esas para todas las fechas repetidas
+                                if (count($request->horas_inicio) === 1 && count($request->horas_fin) === 1) {
+                                    $horariosData[] = [
+                                        'fecha' => $fechaEvento->toDateString(),
+                                        'hora_inicio' => $request->horas_inicio[0],
+                                        'hora_fin' => $request->horas_fin[0],
+                                        'fk_idReserva' => $reserva->id,
+                                        'fk_idSala' => $request->fk_idSala,
+                                        'created_at' => now(),
+                                        'updated_at' => now()
+                                    ];
+                                } else {
+                                    // Si hay múltiples horas, asumimos que corresponden al mismo índice de la fecha base
+                                    foreach ($request->fechas as $j => $fechaBase) {
+                                        if ($fechaBase === $request->fechas[0]) {
+                                            $horariosData[] = [
+                                                'fecha' => $fechaEvento->toDateString(),
+                                                'hora_inicio' => $request->horas_inicio[$j] ?? null,
+                                                'hora_fin' => $request->horas_fin[$j] ?? null,
+                                                'fk_idReserva' => $reserva->id,
+                                                'fk_idSala' => $request->fk_idSala,
+                                                'created_at' => now(),
+                                                'updated_at' => now()
+                                            ];
+                                            break; // Usamos solo las horas correspondientes a la primera fecha
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } elseif (!empty($request->fechas) && is_array($request->fechas) && !empty($request->horas_inicio) && is_array($request->horas_inicio) && !empty($request->horas_fin) && is_array($request->horas_fin)) {
+                // Si no hay repetición por días, simplemente guarda las fechas y horas proporcionadas
+                foreach ($request->fechas as $i => $fecha) {
+                    $horariosData[] = [
+                        'fecha' => $fecha,
+                        'hora_inicio' => $request->horas_inicio[$i] ?? null,
+                        'hora_fin' => $request->horas_fin[$i] ?? null,
+                        'fk_idReserva' => $reserva->id,
+                        'fk_idSala' => $request->fk_idSala,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+                }
             }
             HorariosReservas::insert($horariosData);
 
             DB::commit();
 
             // Notificar a los participantes
-//            $this->notificarParticipantes($reserva, $request->participantes);
+            //            $this->notificarParticipantes($reserva, $request->participantes);
 
             return redirect()
                 ->route('reservas.index')
                 ->with('success', 'Reserva creada exitosamente!');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al crear la reserva: ' . $e->getMessage(), [
@@ -602,7 +698,6 @@ class ReservasController extends Controller
             return redirect()
                 ->route('reservas.index')
                 ->with('success', 'Reserva actualizada exitosamente!');
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al actualizar la reserva: ' . $e->getMessage(), [

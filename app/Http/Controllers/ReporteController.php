@@ -8,11 +8,14 @@ use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use App\Models\Reservas;
+use Illuminate\Support\Facades\DB;
+
 
 class ReporteController extends Controller
 {
     public function index()
     {
+        
         // Obtener datos mensuales
         $users = User::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
             ->groupBy('month')
@@ -77,6 +80,62 @@ class ReporteController extends Controller
             ]
         ];
 
+         $salaMasReservada = Reservas::select('fk_idSala', DB::raw('count(*) as total_reservas'))
+            ->groupBy('fk_idSala')
+            ->orderByDesc('total_reservas')
+            ->limit(5) // Puedes ajustar el límite
+            ->with('sala')
+            ->get();
+
+        // Reporte: Qué usuarios hacen más reservas
+        $usuariosMasReservas = Reservas::select('fk_idUsuario', DB::raw('count(*) as total_reservas'))
+            ->groupBy('fk_idUsuario')
+            ->orderByDesc('total_reservas')
+            ->limit(5) // Puedes ajustar el límite
+            ->with('usuario_creador_reserva')
+            ->get();
+
+        // Reporte: Qué departamento (unidad funcional) hace más reservas
+        $departamentosMasReservas = User::join('reservas', 'users.id', '=', 'reservas.fk_idUsuario')
+            ->select('departamento', DB::raw('count(*) as total_reservas'))
+            ->groupBy('departamento')
+            ->orderByDesc('total_reservas')
+            ->limit(5) // Puedes ajustar el límite
+            ->get();
+
+        // Reporte: Porcentaje de reservas semanal
+        $reservasSemanal = Reservas::selectRaw('YEARWEEK(created_at, 1) as semana, COUNT(*) as total_reservas')
+            ->groupBy('semana')
+            ->orderBy('semana')
+            ->get()
+            ->map(function ($item) {
+                $totalGeneralSemanal = Reservas::whereRaw('YEARWEEK(created_at, 1) = ?', [$item->semana])->count();
+                $item->porcentaje = ($totalGeneralSemanal > 0) ? round(($item->total_reservas / $totalGeneralSemanal) * 100, 2) : 0;
+                return $item;
+            });
+
+        // Reporte: Porcentaje de reservas mensual
+        $reservasMensual = Reservas::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as mes, COUNT(*) as total_reservas')
+            ->groupBy('mes')
+            ->orderBy('mes')
+            ->get()
+            ->map(function ($item) {
+                $totalGeneralMensual = Reservas::whereRaw('DATE_FORMAT(created_at, "%Y-%m") = ?', [$item->mes])->count();
+                $item->porcentaje = ($totalGeneralMensual > 0) ? round(($item->total_reservas / $totalGeneralMensual) * 100, 2) : 0;
+                return $item;
+            });
+
+        // Reporte: Porcentaje de reservas anual
+        $reservasAnual = Reservas::selectRaw('YEAR(created_at) as año, COUNT(*) as total_reservas')
+            ->groupBy('año')
+            ->orderBy('año')
+            ->get()
+            ->map(function ($item) {
+                $totalGeneralAnual = Reservas::whereRaw('YEAR(created_at) = ?', [$item->año])->count();
+                $item->porcentaje = ($totalGeneralAnual > 0) ? round(($item->total_reservas / $totalGeneralAnual) * 100, 2) : 0;
+                return $item;
+            });
+
         return view('reportes.index', [
             'lineData' => [
                 'labels' => $labels,
@@ -95,10 +154,16 @@ class ReporteController extends Controller
                         'label' => 'Reservas',
                         'data' => $reservaData,
                         'backgroundColor' => '#4BC0C0',
-                    ]
-                ]
+                    ],
+                ],
             ],
-            'pieData' => $pieData
+            'pieData' => $pieData,
+            'salaMasReservada' => $salaMasReservada,
+            'usuariosMasReservas' => $usuariosMasReservas,
+            'departamentosMasReservas' => $departamentosMasReservas,
+            'reservasSemanal' => $reservasSemanal,
+            'reservasMensual' => $reservasMensual,
+            'reservasAnual' => $reservasAnual,
         ]);
     }
 }

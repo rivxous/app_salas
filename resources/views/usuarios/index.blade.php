@@ -52,7 +52,7 @@
                             <td class="fw-bold text-uppercase">{{ $user->username }}</td>
                             <td>{{ $user->nombre }}</td>
                             <td>{{ $user->apellido }}</td>
-                            <td>{{ $user->unidad_funcinal }}</td>
+                            <td>{{ $user->unidad_funcional }}</td>
                             <td>{{ $user->email }}</td>
                             @if (Auth::user()->rol == 'admin')
                                 <td>

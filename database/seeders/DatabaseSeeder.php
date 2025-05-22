@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(), // Opcional: simula que el correo está verificado
             'remember_token' => \Illuminate\Support\Str::random(10), // Token de recordar
         ]);
-
+ 
         // Puedes añadir más usuarios si lo necesitas
         User::create([
             'username' => 'regular_user',

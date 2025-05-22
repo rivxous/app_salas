@@ -44,9 +44,9 @@
                                 @endforeach
                             </select>
                             @error('ubicacion')
-                            <div class="invalid-feedback d-block">
-                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                            </div>
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
                             @enderror
                         </div>
 
@@ -57,9 +57,9 @@
                                 <option value="">-- Seleccione una sala --</option>
                             </select>
                             @error('fk_idSala')
-                            <div class="invalid-feedback d-block">
-                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                            </div>
+                                <div class="invalid-feedback d-block">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </div>
                             @enderror
                         </div>
 
@@ -84,9 +84,9 @@
                                     ],
                                 ) !!}
                                 @error('tipoEvento')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
@@ -95,7 +95,7 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <label class="form-label fw-bold">Fechas y Horarios</label>
                                     <button type="button" id="agregarFecha" class="btn btn-sm btn-success"
-                                            style="display: none;">
+                                        style="display: none;">
                                         <i class="bi bi-plus-circle"></i> Agregar fecha
                                     </button>
                                 </div>
@@ -122,7 +122,49 @@
                                     </div>
                                 </div>
                             </div>
-
+                            <!--- temporalidad --->
+                            <div class="container p-3" style="border: solid 1px black; border-radius: 10px;">
+                                <div>
+                                    <select class="form-select" name="temporalidad" aria-label="Default select example">
+                                        <option value="1" selected>semana</option>
+                                        <option value="2">mes</option>
+                                        <option value="3">año</option>
+                                    </select>
+                                </div>
+                                <div class="mt-2 " style="display: flex; flex-direction: row; gap: 10px;">
+                                    <div class="form-check form-check-inline">
+                                        <input name="dias[]" class="form-check-input" type="checkbox" id="inlineCheckbox1"
+                                            value="lunes">
+                                        <label class="form-check-label" for="inlineCheckbox1">Lunes</label>
+                                    </div>
+                                    <div  class="form-check form-check-inline">
+                                        <input name="dias[]" class="form-check-input" type="checkbox" id="inlineCheckbox2" value="Martes">
+                                        <label class="form-check-label" for="inlineCheckbox2">Martes</label>
+                                    </div>
+                                    <div>
+                                        <input name="dias[]" class="form-check-input" type="checkbox" id="inlineCheckbox2"
+                                            value="Miercoles">
+                                        <label class="form-check-label" for="inlineCheckbox2">Miercoles</label>
+                                    </div>
+                                    <div>
+                                        <input name="dias[]" class="form-check-input" type="checkbox" id="inlineCheckbox2"
+                                            value="Jueves">
+                                        <label class="form-check-label" for="inlineCheckbox2">Jueves</label>
+                                    </div>
+                                    <div>
+                                        <input name="dias[]" class="form-check-input" type="checkbox" id="inlineCheckbox2"
+                                            value="Viernes">
+                                        <label class="form-check-label" for="inlineCheckbox2">Viernes</label>
+                                    </div>
+                                </div>
+                                <div class="row gap-4">
+                                    <div class="mb-3">
+                                        <label for="exampleFormControlInput1" class="form-label">Veces Repetida</label>
+                                        <input type="number" min="1" class="form-control" id="repeticion" required
+                                            name="repeticion">
+                                    </div>
+                                </div>
+                            </div>
                             <!-- Título -->
                             <div class="mb-3">
                                 {!! Form::label('titulo', 'Título', ['class' => 'form-label fw-bold']) !!}
@@ -132,9 +174,9 @@
                                     'required' => true,
                                 ]) !!}
                                 @error('titulo')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
 
@@ -147,12 +189,32 @@
                                     'rows' => 3,
                                 ]) !!}
                                 @error('descripcion')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
-
+                            @php
+                                use App\Models\UnidadFuncional;
+                                $unidad_funcional = [];
+                                foreach (UnidadFuncional::all() as $unidad) {
+                                    $unidad_funcional[$unidad->nombre] = $unidad->nombre;
+                                }
+                            @endphp
+                            <div class="mb-3">
+                                {!! Form::label('filtro_rol', 'Filtrar por unidad funcional', ['class' => 'form-label fw-bold']) !!}
+                                {!! Form::select(
+                                    'filtro_rol',
+                                
+                                    $unidad_funcional,
+                                    null,
+                                    [
+                                        'id' => 'filtro_rol',
+                                        'class' => 'form-select',
+                                        'placeholder' => 'Seleccione un rol',
+                                    ],
+                                ) !!}
+                            </div>
                             <!-- Participantes -->
                             <div class="mb-3">
                                 {!! Form::label('participantes', 'Participantes', ['class' => 'form-label fw-bold']) !!}
@@ -163,9 +225,9 @@
                                     'style' => 'width: 100%',
                                 ]) !!}
                                 @error('participantes')
-                                <div class="invalid-feedback d-block">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </div>
+                                    <div class="invalid-feedback d-block">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </div>
                                 @enderror
                             </div>
                         </div>
@@ -190,7 +252,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-6" >
                 <div class="container-fluid shadow-lg bg-white p-3 rounded-3" id="calendario">
                     <h2>Calendario de Reservas</h2>
                     <div id="calendar"></div>
@@ -228,7 +290,7 @@
 
 @section('scripts')
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
             // Datos de las salas
             const salas = @json($salas);
             const salasPorUbicacion = {};
@@ -267,7 +329,7 @@
                     minute: '2-digit',
                     hour12: false // Formato 24h para etiquetas
                 },
-                dateClick: function (info) {
+                dateClick: function(info) {
                     const fechaCompleta = info.dateStr;
                     const horaInicio = fechaCompleta.split("T")[1];
                     const fecha = fechaCompleta.split("T")[0];
@@ -386,7 +448,7 @@
             });
 
             // Cambio de ubicación
-            $ubicacionSelect.on('change', function () {
+            $ubicacionSelect.on('change', function() {
                 const ubicacionSeleccionada = $(this).val();
                 $salaSelect.empty().append('<option value="">-- Seleccione una sala --</option>');
                 $salaContainer.hide();
@@ -401,7 +463,7 @@
             });
 
             // Cambio de sala
-            $salaSelect.on('change', function () {
+            $salaSelect.on('change', function() {
                 if ($(this).val()) {
                     $camposReserva.show();
                     cargarReservasEnCalendario($(this).val());
@@ -412,7 +474,7 @@
             });
 
             // Cambio de tipo de evento
-            $tipoEvento.on('change', function () {
+            $tipoEvento.on('change', function() {
                 if ($(this).val() === 'Curso') {
                     $agregarFechaBtn.show();
                 } else {
@@ -425,7 +487,7 @@
             });
 
             // Agregar nueva fecha
-            $agregarFechaBtn.on('click', function () {
+            $agregarFechaBtn.on('click', function() {
                 const nuevoGrupo = $(`
                     <div class="row g-3 mb-3 fecha-grupo">
                         <div class="col-md-4">
@@ -456,7 +518,7 @@
             });
 
             // Eliminar fecha
-            $(document).on('click', '.eliminarFecha', function () {
+            $(document).on('click', '.eliminarFecha', function() {
                 $(this).closest('.fecha-grupo').remove();
 
                 // Si solo queda un grupo, deshabilitar su botón eliminar
@@ -466,7 +528,7 @@
             });
 
             // Validación de horas
-            $(document).on('change', 'input[name="horas_fin[]"]', function () {
+            $(document).on('change', 'input[name="horas_fin[]"]', function() {
                 const $grupo = $(this).closest('.fecha-grupo');
                 const inicio = $grupo.find('input[name="horas_inicio[]"]').val();
                 const fin = $(this).val();
@@ -513,7 +575,9 @@
                 if (salaId && fecha && horaInicio && horaFin) {
                     // Mostrar indicador de carga
                     $grupo.find('.disponibilidad-msg').remove();
-                    const loadingMsg = $('<div class="disponibilidad-msg mt-1 small text-muted"><i class="bi bi-hourglass"></i> Verificando disponibilidad...</div>');
+                    const loadingMsg = $(
+                        '<div class="disponibilidad-msg mt-1 small text-muted"><i class="bi bi-hourglass"></i> Verificando disponibilidad...</div>'
+                    );
                     $grupo.append(loadingMsg);
 
                     const disponible = await verificarDisponibilidad(salaId, fecha, horaInicio, horaFin);
@@ -579,7 +643,9 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify({id_sala: salaId})
+                        body: JSON.stringify({
+                            id_sala: salaId
+                        })
                     });
 
                     if (!response.ok) {
@@ -602,10 +668,12 @@
 
                             // Crear fechas en zona horaria local
                             const [startH, startM] = horario.hora_inicio.split(':').map(Number);
-                            const startDate = new Date(year, month, day, startH, startM); // Usa hora local directamente
+                            const startDate = new Date(year, month, day, startH,
+                                startM); // Usa hora local directamente
 
                             const [endH, endM] = horario.hora_fin.split(':').map(Number);
-                            const endDate = new Date(year, month, day, endH, endM); // Usa hora local directamente
+                            const endDate = new Date(year, month, day, endH,
+                                endM); // Usa hora local directamente
 
                             return {
                                 title: reserva.titulo,
@@ -657,7 +725,8 @@
                         continue;
                     }
 
-                    const disponible = await verificarDisponibilidad(salaId, fecha, horaInicio, horaFin);
+                    const disponible = await verificarDisponibilidad(salaId, fecha, horaInicio,
+                        horaFin);
                     mostrarEstadoDisponibilidad($grupo, disponible);
 
                     if (!disponible) {
@@ -693,7 +762,7 @@
             });
 
             // Validación del formulario
-            (function () {
+            (function() {
                 'use strict'
 
                 const form = document.getElementById('reservaForm');
@@ -727,7 +796,8 @@
                             continue;
                         }
 
-                        const disponible = await verificarDisponibilidad(salaId, fecha, horaInicio, horaFin);
+                        const disponible = await verificarDisponibilidad(salaId, fecha, horaInicio,
+                            horaFin);
                         if (!disponible) {
                             $grupo.find('input').addClass('is-invalid');
                             mostrarEstadoDisponibilidad($grupo, false);

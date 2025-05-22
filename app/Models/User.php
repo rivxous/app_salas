@@ -150,6 +150,11 @@ class User extends Authenticatable
     {
         return $this->email;
     }
+
+    public function reservas()
+    {
+        return $this->hasMany(Reservas::class , "fk_idUsuario");
+    }
 //    public function getAuthIdentifierName()
 //    {
 //        return 'id';
