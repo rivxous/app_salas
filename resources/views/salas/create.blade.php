@@ -205,29 +205,33 @@
             const mensajeError = document.getElementById('horarioValidation');
             const minTime = '07:30';
             const maxTime = '16:30';
+            let isValid = true; // Variable para rastrear la validez
 
             let errorMessages = [];
+
+            // Resetear estados
+            inicio.classList.remove('is-invalid');
+            fin.classList.remove('is-invalid');
 
             // Validar hora mínima
             if (inicio.value && inicio.value < minTime) {
                 errorMessages.push('La hora de inicio no puede ser antes de las 7:30 AM');
                 inicio.classList.add('is-invalid');
-            } else {
-                inicio.classList.remove('is-invalid');
+                isValid = false;
             }
 
             // Validar hora máxima
             if (fin.value && fin.value > maxTime) {
                 errorMessages.push('La hora final no puede ser después de las 4:30 PM');
                 fin.classList.add('is-invalid');
-            } else {
-                fin.classList.remove('is-invalid');
+                isValid = false;
             }
 
             // Validar que inicio sea antes de fin
             if (inicio.value && fin.value && inicio.value >= fin.value) {
                 errorMessages.push('La hora final debe ser posterior a la hora de inicio');
                 fin.classList.add('is-invalid');
+                isValid = false;
             }
 
             // Mostrar mensajes
@@ -239,7 +243,42 @@
             } else {
                 mensajeError.classList.add('d-none');
             }
+
+            return isValid; // Retornar estado de validación
         }
+
+        // Modificar la validación del formulario
+        (function() {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation');
+
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const isHorarioValid = validarHorarios();
+                    const isFormValid = form.checkValidity();
+
+                    if (isHorarioValid && isFormValid) {
+                        Swal.fire({
+                            title: '¿Confirmar creación?', // Corregido texto
+                            text: '¿Estás seguro de crear esta sala?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, crear', // Corregido texto
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                form.submit();
+                            }
+                        });
+                    } else {
+                        form.classList.add('was-validated');
+                    }
+                }, false);
+            });
+        })();
         // Configurar restricciones al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             const timeInputs = document.querySelectorAll('input[type="time"]');
@@ -256,7 +295,7 @@
         document.getElementById('horario_inicio').addEventListener('change', validarHorarios);
         document.getElementById('horario_fin').addEventListener('change', validarHorarios);
 
-        // Validación de formulario
+        // Modificar la validación del formulario
         (function() {
             'use strict'
             const forms = document.querySelectorAll('.needs-validation');
@@ -266,19 +305,16 @@
                     event.preventDefault();
                     event.stopPropagation();
 
-                    console.log(validarHorarios);
-                    console.log(form.checkValidity());
-                    const esValido = validarHorarios() && form.checkValidity();
-                    console.log()
+                    const isHorarioValid = validarHorarios();
+                    const isFormValid = form.checkValidity();
 
-                    if (esValido) {
-                        // Mostrar confirmación con SweetAlert
+                    if (isHorarioValid && isFormValid) {
                         Swal.fire({
-                            title: '¿Confirmar reserva?',
-                            text: '¿Estás seguro de crear esta reserva?',
+                            title: '¿Confirmar creación?', // Corregido texto
+                            text: '¿Estás seguro de crear esta sala?',
                             icon: 'question',
                             showCancelButton: true,
-                            confirmButtonText: 'Sí, reservar',
+                            confirmButtonText: 'Sí, crear', // Corregido texto
                             cancelButtonText: 'Cancelar'
                         }).then((result) => {
                             if (result.isConfirmed) {
