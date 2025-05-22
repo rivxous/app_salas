@@ -115,7 +115,7 @@
                                 'required' => true,
                                 'id' => 'horario_fin',
                                 'aria-describedby' => 'horarioFinError horarioValidation',
-                                'onchange' => 'validarHorario()'
+                                'onchange' => 'validarHorarios()'
                             ]) !!}
                             <div id="horarioValidation" class="text-danger small d-none">
                                 <i class="bi bi-exclamation-circle"></i> La hora final debe ser posterior a la hora de
@@ -196,82 +196,65 @@
 @section('scripts')
     <script>
         // Variables globales para horario de la sala
-        let currentHorarioInicio = '08:00';
-        let currentHorarioFin = '20:00';
+        let currentHorarioInicio = '07:30';
+        let currentHorarioFin = '16:30';
 
         function validarHorarios() {
+            const inicio = document.getElementById('horario_inicio');
+            const fin = document.getElementById('horario_fin');
             const mensajeError = document.getElementById('horarioValidation');
-            const gruposFecha = document.querySelectorAll('.fecha-grupo');
+            const minTime = '07:30';
+            const maxTime = '16:30';
+
             let errorMessages = [];
 
-            // Restablecer estados
-            gruposFecha.forEach(grupo => {
-                grupo.querySelectorAll('input').forEach(input => {
-                    input.classList.remove('is-invalid');
-                });
-            });
+            // Validar hora mínima
+            if (inicio.value && inicio.value < minTime) {
+                errorMessages.push('La hora de inicio no puede ser antes de las 7:30 AM');
+                inicio.classList.add('is-invalid');
+            } else {
+                inicio.classList.remove('is-invalid');
+            }
 
-            // Validar cada grupo de fecha/hora
-            gruposFecha.forEach((grupo, index) => {
-                const inicio = grupo.querySelector('input[name="horas_inicio[]"]');
-                const fin = grupo.querySelector('input[name="horas_fin[]"]');
-                const fecha = grupo.querySelector('input[name="fechas[]"]');
+            // Validar hora máxima
+            if (fin.value && fin.value > maxTime) {
+                errorMessages.push('La hora final no puede ser después de las 4:30 PM');
+                fin.classList.add('is-invalid');
+            } else {
+                fin.classList.remove('is-invalid');
+            }
 
-                // Validar horario sala
-                if (inicio.value && inicio.value < currentHorarioInicio) {
-                    errorMessages.push(`Grupo ${index + 1}: Hora de inicio no puede ser antes de ${currentHorarioInicio}`);
-                    inicio.classList.add('is-invalid');
-                }
+            // Validar que inicio sea antes de fin
+            if (inicio.value && fin.value && inicio.value >= fin.value) {
+                errorMessages.push('La hora final debe ser posterior a la hora de inicio');
+                fin.classList.add('is-invalid');
+            }
 
-                if (fin.value && fin.value > currentHorarioFin) {
-                    errorMessages.push(`Grupo ${index + 1}: Hora final no puede ser después de ${currentHorarioFin}`);
-                    fin.classList.add('is-invalid');
-                }
-
-                // Validar orden
-                if (inicio.value && fin.value && inicio.value >= fin.value) {
-                    errorMessages.push(`Grupo ${index + 1}: Hora final debe ser posterior a la de inicio`);
-                    fin.classList.add('is-invalid');
-                }
-
-                // Validar fecha requerida
-                if (!fecha.value) {
-                    errorMessages.push(`Grupo ${index + 1}: Fecha es requerida`);
-                    fecha.classList.add('is-invalid');
-                }
-            });
-
-            // Mostrar errores
+            // Mostrar mensajes
             if (errorMessages.length > 0) {
                 mensajeError.innerHTML = errorMessages.map(msg =>
-                    `<div class="text-danger small"><i class="bi bi-x-circle"></i> ${msg}</div>`
-                ).join('');
+                    `<i class="bi bi-exclamation-circle"></i> ${msg}`
+                ).join('<br>');
                 mensajeError.classList.remove('d-none');
-                return false;
+            } else {
+                mensajeError.classList.add('d-none');
             }
-
-            mensajeError.classList.add('d-none');
-            return true;
         }
-
-        // Actualizar horarios al seleccionar sala
-        function actualizarHorarioSala(horarioInicio, horarioFin) {
-            currentHorarioInicio = horarioInicio;
-            currentHorarioFin = horarioFin;
-
-            // Actualizar restricciones en inputs
-            document.querySelectorAll('input[type="time"]').forEach(input => {
-                input.min = horarioInicio;
-                input.max = horarioFin;
+        // Configurar restricciones al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeInputs = document.querySelectorAll('input[type="time"]');
+            timeInputs.forEach(input => {
+                input.min = '07:30';
+                input.max = '16:30';
             });
-        }
 
-        // Configurar validación en tiempo real
-        document.addEventListener('input', function(e) {
-            if (e.target.matches('input[name="horas_inicio[]"], input[name="horas_fin[]"]')) {
-                validarHorarios();
-            }
+            // Validar inicialmente
+            validarHorarios();
         });
+
+        // Event listeners para validación en tiempo real
+        document.getElementById('horario_inicio').addEventListener('change', validarHorarios);
+        document.getElementById('horario_fin').addEventListener('change', validarHorarios);
 
         // Validación de formulario
         (function() {
@@ -283,7 +266,10 @@
                     event.preventDefault();
                     event.stopPropagation();
 
+                    console.log(validarHorarios);
+                    console.log(form.checkValidity());
                     const esValido = validarHorarios() && form.checkValidity();
+                    console.log()
 
                     if (esValido) {
                         // Mostrar confirmación con SweetAlert

@@ -63,7 +63,7 @@
                         <td>{{ $sala->horario_fin->format('h:i A') }}</td>
                         <td>
                             @if($sala->atributos)
-                                @foreach( json_decode($sala->atributos) as $atributo)
+                                @foreach( $sala->atributos as $atributo)
                                     <span class="badge bg-info text-dark me-1">{{ $atributo }}</span>
                                 @endforeach
                             @else

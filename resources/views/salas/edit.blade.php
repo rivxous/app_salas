@@ -162,6 +162,7 @@
                                         'Bocinas' => 'Bocinas'
                                     ];
                                     $currentAtributos = old('atributos', $sala->atributos ?? []);
+//                                    dd($currentAtributos)
                                 @endphp
 
                                 @foreach($atributosOptions as $value => $label)

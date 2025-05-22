@@ -34,6 +34,7 @@ class SalasController extends Controller
     {
         try {
             $salas = Salas::orderBy('id', 'desc')->get();
+
 //            dd($salas);
             return view('salas.index', ['salas' => $salas]);
         } catch (\Exception $e) {
@@ -74,7 +75,7 @@ class SalasController extends Controller
         try {
 //            Salas::create($request->all());
             $sala = new Salas($request->all());
-            $sala->atributos = json_encode($request->atributos); // Laravel lo convierte automáticamente a JSON
+            $sala->atributos = $request->atributos; // Laravel lo convierte automáticamente a JSON
             $sala->save();
 
             return redirect()->route('salas.index')->with('success', 'Sala creada exitosamente!')->withInput();
@@ -92,6 +93,7 @@ class SalasController extends Controller
     {
         try {
             $sala = Salas::findOrFail($id);
+
             return view('salas.edit')->with(['sala' => $sala]);
         } catch (ModelNotFoundException $e) {
             Log::error('Sala no encontrada: ' . $e->getMessage());
@@ -118,7 +120,9 @@ class SalasController extends Controller
 
         try {
             $sala = Salas::findOrFail($id);
-            $sala->update($validatedData);
+            $sala->fill($validatedData);
+//            $sala->atributos($request->atributos);
+            $sala->save();
             return redirect()->route('salas.index')->with('success', 'Sala actualizada correctamente.');
         } catch (ModelNotFoundException $e) {
             Log::error('Sala no encontrada: ' . $e->getMessage());
