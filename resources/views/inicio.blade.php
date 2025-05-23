@@ -75,21 +75,25 @@
 
                 <!-- Calendario -->
                 <div class="container-fluid row">
-                    <div class="container-fluid col-md-6">
+                    <div class="container-fluid col-md-8">
                         <div id="calendar" class="shadow-lg bg-white p-3 rounded-3"></div>
                     </div>
-                    <div class="container-fluid col-md-6 citas">
-                        @foreach ($eventos as $evento)
-                            <div class="container-fluid">
-                                <p>Titulo : {{ $evento['title'] }}</p>
-                                <p>Hora inicio : {{ $evento['start'] }}</p>
-                                <p>Hora fin {{ $evento['end'] }}</p>
-                            </div>
-                            <div class="" style="
-                             border-bottom: solid 1px black;
+                    <div class="container-fluid col-md-4 citas p-0"> <!-- p-0 para eliminar padding -->
+                        <!-- Título con nuevo estilo -->
+                        <div class="card-header bg-white text-#2c3e50 rounded-2"> <!-- rounded-0 para quitar bordes redondeados -->
+                            <p class="h5 mb-0 p-2">Mis Reservas</p>
+                        </div>
 
-                            "></div>
-                        @endforeach
+                        <div class="eventos-container p-3"> <!-- Agregamos padding al contenedor -->
+                            @foreach ($eventos as $evento)
+                                <div class="container-fluid evento-item">
+                                    <p class="evento-titulo">{{ $evento['title'] }}</p>
+                                    <p class="evento-hora">Hora inicio: {{ $evento['start'] }}</p>
+                                    <p class="evento-hora">Hora fin: {{ $evento['end'] }}</p>
+                                </div>
+                                <div class="divisor-evento"></div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </main>
@@ -99,10 +103,63 @@
     <!-- Estilos Personalizados -->
     <style>
         .citas {
-            border: solid 1px #2c3e50;
-            border-radius: 10px;
-            padding: 10px;
+            border: 1px solid #dee2e6; /* Borde similar al card */
+            max-height: 70vh;
+            overflow-y: auto;
         }
+
+        .card-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        /* Mantener otros estilos necesarios */
+        .eventos-container {
+            margin-top: 0 !important;
+        }
+
+        .evento-titulo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .evento-titulo {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .evento-hora {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .divisor-evento {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 1rem 0;
+        }
+
+        .evento-item {
+            padding: 1rem 0;
+        }
+
+        .citas {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            background: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            max-height: 75vh;
+            overflow-y: auto;
+            margin: 20px auto;
+        }
+
 
         /* En tu archivo CSS */
         .fc-event-custom {
